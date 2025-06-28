@@ -1,0 +1,502 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.content {
+    padding: 2rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Join Form */
+.join-form {
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.scan-btn {
+    padding: 1rem;
+    min-width: 60px;
+    font-size: 1.2rem;
+    border-radius: 10px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0.5rem;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+button.secondary {
+    background: #6c757d;
+}
+
+/* Waiting Room */
+.waiting-room {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.game-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+}
+
+.game-id {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 1rem;
+    word-break: break-all;
+}
+
+.categories-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.category-tag {
+    background: #f0f0f0;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.players-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+}
+
+.player-list {
+    list-style: none;
+    margin-top: 1rem;
+}
+
+.player-item {
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.player-name {
+    font-weight: bold;
+}
+
+.player-score {
+    color: #667eea;
+    font-weight: bold;
+}
+
+.player-status {
+    font-size: 0.8rem;
+    color: #28a745;
+}
+
+.player-status.disconnected {
+    color: #dc3545;
+}
+
+/* Game Play */
+.game-play {
+    text-align: center;
+}
+
+.round-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+}
+
+.letter-display {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.timer {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.answers-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.answer-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.answer-group label {
+    min-width: 120px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.answer-group input {
+    flex: 1;
+}
+
+/* Results */
+.results {
+    margin-top: 2rem;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.results-table th,
+.results-table td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.results-table th {
+    background: #f8f9fa;
+    font-weight: bold;
+}
+
+.answer-valid {
+    color: #28a745;
+}
+
+.answer-invalid {
+    color: #dc3545;
+}
+
+.answer-duplicate {
+    color: #ffc107;
+}
+
+.progress {
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 20px;
+    margin: 1rem 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        border-radius: 15px;
+    }
+    
+    .header {
+        padding: 1.5rem 1rem;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .content {
+        padding: 1.5rem 1rem;
+    }
+    
+    .waiting-room {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .game-info,
+    .players-section {
+        padding: 1rem;
+    }
+    
+    .game-id {
+        font-size: 1.2rem;
+    }
+    
+    .letter-display {
+        font-size: 3rem;
+    }
+    
+    .timer {
+        font-size: 1.3rem;
+    }
+    
+    .answer-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .answer-group label {
+        text-align: left;
+        min-width: auto;
+    }
+    
+    button {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        margin: 0.3rem;
+    }
+    
+    /* Make results table scrollable on mobile */
+    .results-table {
+        font-size: 0.9rem;
+    }
+    
+    .results-table th,
+    .results-table td {
+        padding: 0.5rem;
+    }
+    
+    /* Stack player items on mobile for better readability */
+    .player-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .player-item > div {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    padding: 0;
+    max-width: 400px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+#qr-video {
+    border-radius: 10px;
+    max-width: 100%;
+}
+
+#scanner-status {
+    margin-top: 1rem;
+    color: #666;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    
+    .header {
+        padding: 1rem 0.5rem;
+    }
+    
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .content {
+        padding: 1rem 0.5rem;
+    }
+    
+    .join-form {
+        max-width: 100%;
+    }
+    
+    input {
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+    
+    button {
+        padding: 0.8rem 1.2rem;
+        font-size: 0.95rem;
+        min-width: 100%;
+        margin: 0.2rem 0;
+    }
+    
+    .letter-display {
+        font-size: 2.5rem;
+    }
+    
+    .round-info {
+        padding: 1rem;
+    }
+    
+    .category-tag {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    /* Horizontal scroll for results table on very small screens */
+    .results {
+        overflow-x: auto;
+    }
+    
+    .results-table {
+        min-width: 300px;
+        font-size: 0.8rem;
+    }
+} 

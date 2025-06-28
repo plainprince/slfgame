@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">Moderate & Play - Stadt Land Fluss</title>
+    <link rel="stylesheet" href="moderate-play.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="title">Stadt Land Fluss</h1>
+            <p id="header-subtitle">Moderate & Play Mode</p>
+        </div>
+        
+        <div class="content">
+            <!-- Game Setup -->
+            <div id="game-setup" class="game-setup">
+                <h2>Create Game (Moderate & Play Mode)</h2>
+                <p style="color: #666; margin-bottom: 2rem;">In this mode, you'll both moderate the game and play as a participant. Hands are automatically approved when raised.</p>
+                
+                <form id="createForm">
+                    <div class="form-group">
+                        <label for="categories">Categories</label>
+                        <input type="text" id="category-input" placeholder="Add a category and press Enter">
+                        <div id="categories-container" class="categories-container">
+                            <!-- Default categories will be added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="moderator-name">Your Name (as player)</label>
+                        <input type="text" id="moderator-name" placeholder="Enter your name" required>
+                    </div>
+                    
+                    <button type="submit">Create Game & Join as Player</button>
+                </form>
+            </div>
+            
+            <!-- Split View: Moderator + Player -->
+            <div id="split-view" class="split-view hidden">
+                <!-- Moderator Panel -->
+                <div class="moderator-panel">
+                    <h3>Moderator View</h3>
+                    <div id="moderator-content">
+                        <!-- Game info and controls -->
+                        <div id="game-info-mod">
+                            <div class="game-id-display">
+                                <p>Game ID: <span id="game-id-mod"></span></p>
+                            </div>
+                            <div id="round-info-mod" class="hidden">
+                                <p>Round <span id="current-round-mod">1</span> - Letter <span id="current-letter-mod">A</span></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Players list -->
+                        <div id="players-section-mod">
+                            <h4>Players</h4>
+                            <p id="players-count-mod">0 players joined</p>
+                            <ul class="player-list" id="player-list-mod"></ul>
+                        </div>
+                        
+                        <!-- Game controls -->
+                        <div id="game-controls-mod">
+                            <button id="start-game-btn-mod" disabled>Start Round</button>
+                            <button id="stop-round-btn-mod" class="secondary hidden">Stop Round</button>
+                            <button id="end-game-btn-mod" class="secondary">End Game</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Player Panel (iframe) -->
+                <div class="player-panel">
+                    <h3>Your Game View</h3>
+                    <iframe id="player-iframe" src="" frameborder="0"></iframe>
+                </div>
+            </div>
+            
+            <!-- Results View -->
+            <div id="results" class="results hidden">
+                <h2>Round Results</h2>
+                <div id="results-content">
+                    <!-- Results will be displayed here -->
+                </div>
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button id="next-round-btn" type="button" style="display: none;">Next Round</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../i18n.js"></script>
+    <script src="moderate-play.js"></script>
+</body>
+</html> 

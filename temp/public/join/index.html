@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">Join Game - Stadt Land Fluss</title>
+    <link rel="stylesheet" href="join.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="title">Stadt Land Fluss</h1>
+            <p id="header-subtitle" data-i18n="joinGameTitle">Join a game</p>
+        </div>
+        
+        <div class="content">
+            <!-- Join Form -->
+            <div id="join-form" class="join-form">
+                <h2 data-i18n="joinGame">Join Game</h2>
+                <div id="error-message" class="error-message hidden"></div>
+                
+                <form id="joinGameForm">
+                    <div class="form-group">
+                        <label for="game-id" data-i18n="gameId">Game ID</label>
+                        <div class="input-with-button">
+                            <input type="text" id="game-id" data-i18n-placeholder="enterGameId" placeholder="Enter the Game ID" required>
+                            <button type="button" id="scan-qr-btn" class="scan-btn" data-i18n="scanQR" title="Scan QR Code">📷</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="player-name" data-i18n="yourName">Your Name</label>
+                        <input type="text" id="player-name" data-i18n-placeholder="enterName" placeholder="Enter your name" required>
+                    </div>
+                    
+                    <button type="submit" data-i18n="joinGameBtn">Join Game</button>
+                    <button type="button" class="secondary" onclick="location.href='/'" data-i18n="back">Back</button>
+                </form>
+            </div>
+            
+            <!-- Waiting Room -->
+            <div id="waiting-room" class="waiting-room hidden">
+                <div class="game-info">
+                    <h2 data-i18n="joinedGame">Joined Game!</h2>
+                    <div class="game-id" id="game-id-display"></div>
+                    <p data-i18n="waitingForStart">Waiting for the game creator to start the round...</p>
+                    <div class="categories-container" id="game-categories"></div>
+                    <button class="secondary" onclick="leaveGame()" data-i18n="leaveGame">Leave Game</button>
+                </div>
+                
+                <div class="players-section">
+                    <h2 data-i18n="players">Players</h2>
+                    <p id="players-count">0 players joined</p>
+                    <ul class="player-list" id="player-list"></ul>
+                </div>
+            </div>
+            
+            <!-- Game Play -->
+            <div id="game-play" class="game-play hidden">
+                <div class="round-info">
+                    <h2><span data-i18n="round">Round</span> <span id="current-round">1</span> - <span data-i18n="letter">Letter</span> <span id="current-letter">A</span></h2>
+                </div>
+                
+                <form id="answers-form" class="answers-form">
+                    <!-- Answer inputs will be generated here -->
+                </form>
+                
+                <div style="margin-top: 2rem;">
+                    <button id="stop-round-btn" type="button" class="secondary" style="display: none;" data-i18n="stopRound">Stop Round</button>
+                    <button type="button" class="secondary" onclick="leaveGame()" data-i18n="leaveGame">Leave Game</button>
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 1rem;" data-i18n="onlyCreatorCanStop">Only the game creator can stop the round early</p>
+                </div>
+                
+                <div id="submission-status" style="margin-top: 1rem;">
+                    <p id="submission-text" data-i18n="fillAnswers">Fill in your answers...</p>
+                    <div class="progress">
+                        <div class="progress-bar" id="submission-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results -->
+            <div id="results" class="results hidden">
+                <h2 data-i18n="roundResults">Round Results</h2>
+                <div id="results-content">
+                    <!-- Results will be displayed here -->
+                </div>
+                <p style="margin-top: 2rem; color: #666;" id="results-footer" data-i18n="waitingNextRound">Waiting for next round...</p>
+                <button class="secondary" onclick="leaveGame()" data-i18n="leaveGame">Leave Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qr-scanner-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="scanQRCode">Scan QR Code</h3>
+                <button id="close-scanner" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <video id="qr-video" width="300" height="300" style="border: 1px solid #ddd;"></video>
+                <p id="scanner-status" data-i18n="pointCameraAtQR">Point your camera at the QR code</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../i18n.js"></script>
+    <script src="join.js"></script>
+</body>
+</html>

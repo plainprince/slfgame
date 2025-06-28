@@ -1,0 +1,220 @@
+{
+  "136632": {
+    "id": "136632",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [],
+    "currentRound": 0,
+    "currentLetter": "",
+    "currentRoundAnswers": {},
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751118171479,
+    "creatorId": "vSyLUToEKza-mSPXAAAB"
+  },
+  "175013": {
+    "id": "175013",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [],
+    "currentRound": 0,
+    "currentLetter": "",
+    "currentRoundAnswers": {},
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751118355297,
+    "creatorId": "RtiHORwL0UVwILXxAAAD"
+  },
+  "378587": {
+    "id": "378587",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [],
+    "currentRound": 0,
+    "currentLetter": "",
+    "currentRoundAnswers": {},
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751116406137,
+    "creatorId": "NAqOTmnajBmnp8XeAAAY"
+  },
+  "380780": {
+    "id": "380780",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [],
+    "currentRound": 0,
+    "currentLetter": "",
+    "currentRoundAnswers": {},
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751118905189,
+    "creatorId": "0MciU1DD0VRNocYsAAAR"
+  },
+  "385944": {
+    "id": "385944",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [],
+    "currentRound": 0,
+    "currentLetter": "",
+    "currentRoundAnswers": {},
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751117455381,
+    "creatorId": "YYXFT8aBm6l36CZhAABT"
+  },
+  "401042": {
+    "id": "401042",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [
+      {
+        "id": "M9EQ893eLoHjHgU0AAAL",
+        "name": "plain",
+        "score": 40
+      }
+    ],
+    "currentRound": 1,
+    "currentLetter": "E",
+    "currentRoundAnswers": {
+      "plain": {
+        "Stadt": "E",
+        "Land": "E",
+        "Fluss": "E",
+        "Name": "A",
+        "Tier": "A"
+      }
+    },
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751118743915,
+    "creatorId": "ruQ4YjHBIWVs-QvSAAAJ"
+  },
+  "511745": {
+    "id": "511745",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [
+      {
+        "id": "r2nkJNc_GdecQv5AAAAD",
+        "name": "plainprince",
+        "score": 0
+      }
+    ],
+    "currentRound": 1,
+    "currentLetter": "O",
+    "currentRoundAnswers": {},
+    "gameState": "playing",
+    "roundTimer": null,
+    "createdAt": 1751118516746,
+    "creatorId": "4tErnQN_1m6n8PLrAAAB"
+  },
+  "537189": {
+    "id": "537189",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [
+      {
+        "id": "cU5KN9nW9vacJS1jAABR",
+        "name": "plainprince",
+        "score": 0,
+        "connected": true
+      }
+    ],
+    "currentRound": 2,
+    "currentLetter": "L",
+    "currentRoundAnswers": {
+      "": {
+        "Stadt": "",
+        "Land": "",
+        "Fluss": "",
+        "Name": "",
+        "Tier": ""
+      },
+      "plainprince": {
+        "Stadt": "",
+        "Land": "",
+        "Fluss": "",
+        "Name": "",
+        "Tier": ""
+      }
+    },
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751116745892,
+    "creatorId": "YigY3Qy20uWx9r20AAAD"
+  },
+  "778137": {
+    "id": "778137",
+    "categories": [
+      "Stadt",
+      "Land",
+      "Fluss",
+      "Name",
+      "Tier"
+    ],
+    "players": [
+      {
+        "id": "cSIZV2y5DNJFewbJAAAH",
+        "name": "plain",
+        "score": 60
+      }
+    ],
+    "currentRound": 1,
+    "currentLetter": "L",
+    "currentRoundAnswers": {
+      "plain": {
+        "Stadt": "L",
+        "Land": "L",
+        "Fluss": "L",
+        "Name": "A",
+        "Tier": "A"
+      }
+    },
+    "gameState": "waiting",
+    "roundTimer": null,
+    "createdAt": 1751118628949,
+    "creatorId": "foFdFolZBspcHC-JAAAF"
+  }
+}

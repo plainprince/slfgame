@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">Create Game - Stadt Land Fluss</title>
+    <link rel="stylesheet" href="create.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="title">Stadt Land Fluss</h1>
+            <p id="header-subtitle" data-i18n="createYourGame">Create your game</p>
+        </div>
+        
+        <div class="content">
+            <!-- Game Setup -->
+            <div id="game-setup" class="game-setup">
+                <h2 data-i18n="gameSetup">Game Setup</h2>
+                <form id="createForm">
+                    <div class="form-group">
+                        <label for="categories" data-i18n="categories">Categories</label>
+                        <input type="text" id="category-input" data-i18n-placeholder="addCategory" placeholder="Add a category and press Enter">
+                        <div id="categories-container" class="categories-container">
+                            <!-- Default categories will be added here -->
+                        </div>
+                    </div>
+                    
+                    <button type="submit" data-i18n="createGameBtn">Create Game</button>
+                </form>
+            </div>
+            
+            <!-- Waiting Room -->
+            <div id="waiting-room" class="waiting-room hidden">
+                <div class="game-info">
+                    <h2 data-i18n="gameCreated">Game Created!</h2>
+                    <div class="game-id-container">
+                        <div class="game-id" id="game-id-display"></div>
+                        <div class="qr-code-container">
+                            <canvas id="qr-code" width="120" height="120"></canvas>
+                            <p class="qr-label" data-i18n="scanToJoin">Scan to join</p>
+                        </div>
+                    </div>
+                    <div class="share-links">
+                        <button id="copy-link-btn" class="secondary" data-i18n="copyShareLink">Copy Share Link</button>
+                        <button id="copy-id-btn" class="secondary" data-i18n="copyGameId">Copy Game ID</button>
+                    </div>
+                    <p data-i18n="shareGameId">Share this Game ID with your friends so they can join!</p>
+                    <div class="categories-container" id="game-categories"></div>
+                    <button id="start-game-btn" data-i18n="startGame" disabled>Start Game</button>
+                </div>
+                
+                <div class="players-section">
+                    <h2 data-i18n="players">Players</h2>
+                    <p id="players-count">0 players joined</p>
+                    <ul class="player-list" id="player-list"></ul>
+                </div>
+            </div>
+            
+            <!-- Game Play -->
+            <div id="game-play" class="game-play hidden">
+                <div class="round-info">
+                    <h2><span data-i18n="round">Round</span> <span id="current-round">1</span> - <span data-i18n="letter">Letter</span> <span id="current-letter">A</span></h2>
+                    <p style="color: #666; margin-top: 1rem;" data-i18n="moderating">You are moderating this round</p>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <button id="stop-round-btn" type="button" class="secondary" data-i18n="stopRound">Stop Round</button>
+                </div>
+            </div>
+            
+
+            <!-- Results -->
+            <div id="results" class="results hidden">
+                <h2 data-i18n="roundResults">Round Results</h2>
+                <div id="results-content">
+                    <!-- Results will be displayed here -->
+                </div>
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button id="next-round-btn" type="button" style="display: none;" data-i18n="nextRound">Next Round</button>
+                </div>
+            </div>
+
+            <button id="end-game-btn" class="secondary" style="display: none;" data-i18n="endGame">End Game</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../i18n.js"></script>
+    <script src="create.js"></script>
+</body>
+</html>
