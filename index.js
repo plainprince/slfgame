@@ -13,6 +13,9 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 
+// Middleware
+app.use(express.json());
+
 // Configure Ollama client
 const ollama = new Ollama({
   host: 'http://localhost:11434'
@@ -20,6 +23,7 @@ const ollama = new Ollama({
 
 // File path for storing games data
 const GAMES_FILE_PATH = path.join(__dirname, 'games.json');
+const FEEDBACK_FILE = 'feedback.json';
 
 // Function to save games to JSON file
 async function saveGamesToFile(gamesData) {
@@ -86,10 +90,44 @@ let games = new Proxy(initialGames, {
     }
 });
 
+// Load/save feedback functions
+async function saveFeedbackToFile(feedbackData) {
+    try {
+        await fs.writeFile(FEEDBACK_FILE, JSON.stringify(feedbackData, null, 2));
+        console.log('Feedback data saved to file');
+    } catch (error) {
+        console.error('Error saving feedback data:', error);
+    }
+}
+
+async function loadFeedbackFromFile() {
+    try {
+        const data = await fs.readFile(FEEDBACK_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.log('Creating new feedback file');
+        const initialData = { feedback: {} };
+        await saveFeedbackToFile(initialData);
+        return initialData;
+    }
+}
+
+// Load existing feedback on startup
+let feedbackData = await loadFeedbackFromFile();
+
 async function isAnswerValid(answer, letter, category) {
     if (!answer || typeof answer !== 'string') return false;
     if (!answer.startsWith(letter)) return false;
 
+    // Check feedback database first
+    const answerKey = `${answer.trim().toLowerCase()}_${category.toLowerCase()}_${letter.toLowerCase()}`;
+    
+    if (feedbackData.feedback.hasOwnProperty(answerKey)) {
+        console.log('Found feedback entry:', answerKey, '=', feedbackData.feedback[answerKey]);
+        return feedbackData.feedback[answerKey];
+    }
+
+    // If no feedback found, use AI validation
     const response = await ollama.chat({
         model: 'llama3.2:1b',
         messages: [
@@ -196,6 +234,38 @@ app.get('/join/:gameId', (req, res) => {
 // Add route for moderate-play mode
 app.get('/moderate-play', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'moderate-play', 'index.html'));
+});
+
+// Feedback submission endpoint
+app.post('/api/feedback', async (req, res) => {
+    try {
+        const { answer, category, letter, aiSaid, userSays } = req.body;
+        
+        if (!answer || !category || !letter || typeof aiSaid !== 'boolean' || typeof userSays !== 'boolean') {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        // Determine the correct validation based on user feedback
+        // If user thumbs up: use what AI said
+        // If user thumbs down: use opposite of what AI said
+        const isValid = userSays ? aiSaid : !aiSaid;
+        
+        // Create simplified key for the answer
+        const answerKey = `${answer.trim().toLowerCase()}_${category.trim().toLowerCase()}_${letter.trim().toLowerCase()}`;
+        
+        // Store simplified feedback: just the key and whether it's valid
+        feedbackData.feedback[answerKey] = isValid;
+        
+        // Save to file
+        await saveFeedbackToFile(feedbackData);
+        
+        console.log('Feedback saved:', answerKey, '=', isValid);
+        res.json({ success: true });
+        
+    } catch (error) {
+        console.error('Error saving feedback:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 io.on('connection', (socket) => {
@@ -516,9 +586,21 @@ io.on('connection', (socket) => {
         }
 
         if (approved) {
-            // Hand approved - end the round
+            // Hand approved - end the round with loading state
             console.log(`Hand approved by moderator in game ${gameId}`);
-            endRound(gameId);
+            
+            // Show loading state to moderator
+            socket.emit('roundStopLoading', true);
+
+            // Notify all players that the round is being stopped
+            io.to(gameId).emit('roundStopping');
+
+            // Wait a short moment for auto-submissions, then end the round
+            setTimeout(() => {
+                endRound(gameId);
+                // Hide loading state
+                socket.emit('roundStopLoading', false);
+            }, 500);
         } else {
             // Hand denied - clear answers and reset
             const playerName = game.handRaised;

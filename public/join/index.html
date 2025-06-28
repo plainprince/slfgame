@@ -24,7 +24,6 @@
                         <label for="game-id" data-i18n="gameId">Game ID</label>
                         <div class="input-with-button">
                             <input type="text" id="game-id" data-i18n-placeholder="enterGameId" placeholder="Enter the Game ID" required>
-                            <button type="button" id="scan-qr-btn" class="scan-btn" data-i18n="scanQR" title="Scan QR Code">📷</button>
                         </div>
                     </div>
                     
@@ -96,22 +95,7 @@
         </div>
     </div>
 
-    <!-- QR Scanner Modal -->
-    <div id="qr-scanner-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 data-i18n="scanQRCode">Scan QR Code</h3>
-                <button id="close-scanner" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <video id="qr-video" width="300" height="300" style="border: 1px solid #ddd;"></video>
-                <p id="scanner-status" data-i18n="pointCameraAtQR">Point your camera at the QR code</p>
-            </div>
-        </div>
-    </div>
-
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="../i18n.js"></script>
     <script src="join.js"></script>
 </body>

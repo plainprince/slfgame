@@ -14,6 +14,17 @@
         </div>
         
         <div class="content">
+            <!-- Persistent Game ID and QR Code (shown during gameplay and results) -->
+            <div class="persistent-game-info" id="persistent-game-info" style="display: none;">
+                <div class="persistent-game-id">
+                    <span class="game-id-label" data-i18n="gameId">Game ID:</span>
+                    <span class="game-id-value" id="persistent-game-id"></span>
+                </div>
+                <div class="persistent-qr-container">
+                    <div id="persistent-qr-code"></div>
+                </div>
+            </div>
+            
             <!-- Game Setup -->
             <div id="game-setup" class="game-setup">
                 <h2 data-i18n="gameSetup">Game Setup</h2>
@@ -27,6 +38,7 @@
                     </div>
                     
                     <button type="submit" data-i18n="createGameBtn">Create Game</button>
+                    <button type="button" class="secondary" onclick="location.href='/'" data-i18n="back">Back</button>
                 </form>
             </div>
             
@@ -37,7 +49,7 @@
                     <div class="game-id-container">
                         <div class="game-id" id="game-id-display"></div>
                         <div class="qr-code-container">
-                            <canvas id="qr-code" width="120" height="120"></canvas>
+                            <div id="qr-code"></div>
                             <p class="qr-label" data-i18n="scanToJoin">Scan to join</p>
                         </div>
                     </div>
@@ -61,10 +73,6 @@
             <div id="game-play" class="game-play hidden">
                 <div class="round-info">
                     <h2><span data-i18n="round">Round</span> <span id="current-round">1</span> - <span data-i18n="letter">Letter</span> <span id="current-letter">A</span></h2>
-                    <div style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 10px;">
-                        <p style="margin: 0; color: #666; font-size: 0.9rem;">Game ID:</p>
-                        <p style="margin: 0; font-size: 1.2rem; font-weight: bold; color: #667eea;" id="game-id-display"></p>
-                    </div>
                     <p style="color: #666; margin-top: 1rem;" data-i18n="moderating">You are moderating this round</p>
                 </div>
                 
@@ -90,7 +98,7 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="//cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <script src="../i18n.js"></script>
     <script src="create.js"></script>
 </body>

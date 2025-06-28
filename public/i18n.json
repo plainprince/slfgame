@@ -51,10 +51,7 @@
       },
       "scanToJoin": "Scannen zum Beitreten",
       "copyShareLink": "Share-Link kopieren",
-      "copyGameId": "Spiel-ID kopieren",
-      "scanQR": "QR scannen",
-      "scanQRCode": "QR-Code scannen",
-      "pointCameraAtQR": "Richte deine Kamera auf den QR-Code"
+      "copyGameId": "Spiel-ID kopieren"
     },
     "en": {
       "title": "City Country River",
@@ -108,10 +105,7 @@
       },
       "scanToJoin": "Scan to join",
       "copyShareLink": "Copy Share Link",
-      "copyGameId": "Copy Game ID",
-      "scanQR": "Scan QR",
-      "scanQRCode": "Scan QR Code",
-      "pointCameraAtQR": "Point your camera at the QR code"
+      "copyGameId": "Copy Game ID"
     },
     "es": {
       "title": "Ciudad País Río",
@@ -165,10 +159,7 @@
       },
       "scanToJoin": "Escanear para unirse",
       "copyShareLink": "Copiar enlace de compartir",
-      "copyGameId": "Copiar ID del juego",
-      "scanQR": "Escanear QR",
-      "scanQRCode": "Escanear código QR",
-      "pointCameraAtQR": "Apunta tu cámara al código QR"
+      "copyGameId": "Copiar ID del juego"
     },
     "fr": {
       "title": "Ville Pays Rivière",
@@ -222,10 +213,7 @@
       },
       "scanToJoin": "Scanner pour rejoindre",
       "copyShareLink": "Copier le lien de partage",
-      "copyGameId": "Copier l'ID du jeu",
-      "scanQR": "Scanner QR",
-      "scanQRCode": "Scanner le code QR",
-      "pointCameraAtQR": "Pointez votre caméra vers le code QR"
+      "copyGameId": "Copier l'ID du jeu"
     },
     "it": {
       "title": "Città Paese Fiume",
@@ -279,10 +267,7 @@
       },
       "scanToJoin": "Scansiona per unirti",
       "copyShareLink": "Copia link di condivisione",
-      "copyGameId": "Copia ID partita",
-      "scanQR": "Scansiona QR",
-      "scanQRCode": "Scansiona codice QR",
-      "pointCameraAtQR": "Punta la fotocamera verso il codice QR"
+      "copyGameId": "Copia ID partita"
     },
     "ru": {
       "title": "Город Страна Река",
@@ -336,9 +321,6 @@
       },
       "scanToJoin": "Сканировать для присоединения",
       "copyShareLink": "Копировать ссылку для совместного доступа",
-      "copyGameId": "Копировать ID игры",
-      "scanQR": "Сканировать QR",
-      "scanQRCode": "Сканировать QR-код",
-      "pointCameraAtQR": "Наведите камеру на QR-код"
+      "copyGameId": "Копировать ID игры"
     }
   } 

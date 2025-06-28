@@ -28,7 +28,6 @@ const GAME_DATA_KEY = 'slfgame_data';
 document.addEventListener('DOMContentLoaded', async () => {
     await window.i18n.init();
     setupEventListeners();
-    setupQRScanner();
     checkURLParameters();
     checkForStoredGameData();
 });
@@ -131,108 +130,7 @@ function setupEventListeners() {
     // Leave game functionality is handled by existing buttons in the UI
 }
 
-function setupQRScanner() {
-    const scanBtn = document.getElementById('scan-qr-btn');
-    const modal = document.getElementById('qr-scanner-modal');
-    const closeBtn = document.getElementById('close-scanner');
-    const video = document.getElementById('qr-video');
-    
-    scanBtn.addEventListener('click', () => {
-        openQRScanner();
-    });
-    
-    closeBtn.addEventListener('click', () => {
-        closeQRScanner();
-    });
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeQRScanner();
-        }
-    });
-}
 
-async function openQRScanner() {
-    const modal = document.getElementById('qr-scanner-modal');
-    const video = document.getElementById('qr-video');
-    const status = document.getElementById('scanner-status');
-    
-    modal.classList.remove('hidden');
-    
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
-        });
-        video.srcObject = stream;
-        video.play();
-        
-        status.textContent = window.i18n.t('pointCameraAtQR') || 'Point your camera at the QR code';
-        
-        // Start QR detection
-        startQRDetection(video);
-        
-    } catch (err) {
-        console.error('Error accessing camera:', err);
-        status.textContent = 'Camera access denied or not available';
-    }
-}
-
-function closeQRScanner() {
-    const modal = document.getElementById('qr-scanner-modal');
-    const video = document.getElementById('qr-video');
-    
-    modal.classList.add('hidden');
-    
-    if (video.srcObject) {
-        const tracks = video.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
-        video.srcObject = null;
-    }
-    
-    // Stop detection
-    if (window.qrDetectionInterval) {
-        clearInterval(window.qrDetectionInterval);
-        window.qrDetectionInterval = null;
-    }
-}
-
-function startQRDetection(video) {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const status = document.getElementById('scanner-status');
-    
-    // Check for QR codes every 500ms
-    window.qrDetectionInterval = setInterval(() => {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            
-            if (typeof jsQR !== 'undefined') {
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                
-                if (code) {
-                    console.log('QR Code detected:', code.data);
-                    
-                    // Extract game ID from URL
-                    const gameId = extractGameIdFromUrl(code.data);
-                    if (gameId) {
-                        document.getElementById('game-id').value = gameId;
-                        closeQRScanner();
-                        status.textContent = 'QR Code scanned successfully!';
-                    } else {
-                        status.textContent = 'Invalid QR code. Please scan a valid game QR code.';
-                    }
-                }
-            } else {
-                status.textContent = 'QR scanner library not loaded. Please enter Game ID manually.';
-                clearInterval(window.qrDetectionInterval);
-            }
-        }
-    }, 500);
-}
 
 function extractGameIdFromUrl(url) {
     try {
@@ -664,7 +562,17 @@ function displayResults(resultsData) {
                 cssClass = sameAnswers === 1 ? 'answer-valid' : 'answer-duplicate';
             }
             
-            html += `<td><span class="${cssClass}">${answer || '-'}</span></td>`;
+            html += `<td>
+                <div class="answer-container">
+                    <span class="${cssClass}">${answer || '-'}</span>
+                    ${answer ? `
+                        <div class="feedback-buttons">
+                            <button class="feedback-btn thumbs-up" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, true)" title="Correct validation">👍</button>
+                            <button class="feedback-btn thumbs-down" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, false)" title="Incorrect validation">👎</button>
+                        </div>
+                    ` : ''}
+                </div>
+            </td>`;
         });
         
         // Add scores
@@ -974,3 +882,44 @@ socket.on('handProcessed', () => {
     someoneRaisedHand = false;
     validateAndUpdateShowHandButton();
 });
+
+// Feedback submission function
+async function submitFeedback(answer, category, letter, aiSaid, userSays) {
+    try {
+        const response = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                answer: answer,
+                category: category,
+                letter: letter,
+                aiSaid: aiSaid,
+                userSays: userSays
+            })
+        });
+        
+        if (response.ok) {
+            // Visual feedback - change button color temporarily
+            const buttons = document.querySelectorAll(`button[onclick*="${answer}"][onclick*="${category}"]`);
+            buttons.forEach(btn => {
+                if ((userSays && btn.classList.contains('thumbs-up')) || 
+                    (!userSays && btn.classList.contains('thumbs-down'))) {
+                    btn.style.backgroundColor = '#28a745';
+                    btn.style.color = 'white';
+                    setTimeout(() => {
+                        btn.style.backgroundColor = '';
+                        btn.style.color = '';
+                    }, 2000);
+                }
+            });
+            
+            console.log('Feedback submitted successfully');
+        } else {
+            console.error('Failed to submit feedback');
+        }
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+    }
+}

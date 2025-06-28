@@ -29,6 +29,7 @@ body {
 
 .content {
     padding: 2rem;
+    padding-bottom: 100px; /* Add space for persistent game info bar */
 }
 
 .hidden {
@@ -219,10 +220,63 @@ button.secondary {
     text-align: center;
 }
 
+/* Persistent Game Info */
+.persistent-game-info {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 2px solid #667eea;
+    padding: 12px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.persistent-game-id {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.game-id-label {
+    font-size: 0.75rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.game-id-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #667eea;
+    letter-spacing: 1px;
+}
+
+.persistent-qr-container {
+    display: flex;
+    align-items: center;
+}
+
+.persistent-qr-container #persistent-qr-code {
+    width: 60px !important;
+    height: 60px !important;
+}
+
+.persistent-qr-container #persistent-qr-code img,
+.persistent-qr-container #persistent-qr-code canvas {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 4px;
+}
+
 .round-info {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 15px;
+    text-align: center;
     margin-bottom: 2rem;
 }
 
@@ -323,24 +377,25 @@ button.secondary {
     }
     
     .header {
-        padding: 1.5rem 1rem;
+        padding: 1.5rem;
     }
     
     .header h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
     
     .content {
-        padding: 1.5rem 1rem;
+        padding: 1.5rem;
+        padding-bottom: 80px; /* Adjust for mobile bottom bar */
     }
     
     .game-setup {
-        max-width: 100%;
+        max-width: none;
     }
     
     .waiting-room {
         grid-template-columns: 1fr;
-        gap: 1.5rem;
+        gap: 1rem;
     }
     
     .game-info,
@@ -353,33 +408,32 @@ button.secondary {
     }
     
     .letter-display {
-        font-size: 3rem;
+        font-size: 2rem;
     }
     
     .timer {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
     
     .answer-group {
+        display: flex;
         flex-direction: column;
-        align-items: stretch;
         gap: 0.5rem;
     }
     
     .answer-group label {
-        text-align: left;
-        min-width: auto;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
     }
     
     button {
-        padding: 1rem 1.5rem;
+        padding: 0.8rem 1.5rem;
         font-size: 1rem;
         margin: 0.3rem;
     }
     
-    /* Make category tags wrap better on mobile */
     .categories-container {
-        gap: 0.3rem;
+        justify-content: center;
     }
     
     .category-tag {
@@ -387,7 +441,6 @@ button.secondary {
         padding: 0.2rem 0.6rem;
     }
     
-    /* Stack player items on mobile for better readability */
     .player-item {
         flex-direction: column;
         align-items: flex-start;
@@ -395,19 +448,56 @@ button.secondary {
     }
     
     .player-item > div {
+        width: 100%;
         display: flex;
         justify-content: space-between;
-        width: 100%;
+        align-items: center;
     }
     
-    /* Make results table scrollable on mobile */
     .results-table {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
     
     .results-table th,
     .results-table td {
-        padding: 0.5rem;
+        padding: 0.3rem;
+    }
+    
+    /* Persistent Game Info Mobile Styles */
+    .persistent-game-info {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        flex-direction: row;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px;
+        border-top: 2px solid #667eea;
+    }
+    
+    .persistent-game-id {
+        flex-direction: row;
+        gap: 8px;
+    }
+    
+    .game-id-label {
+        font-size: 0.7rem;
+    }
+    
+    .game-id-value {
+        font-size: 0.9rem;
+    }
+    
+    .persistent-qr-container #persistent-qr-code {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    .persistent-qr-container #persistent-qr-code img,
+    .persistent-qr-container #persistent-qr-code canvas {
+        width: 50px !important;
+        height: 50px !important;
     }
 }
 
@@ -426,6 +516,7 @@ button.secondary {
     
     .content {
         padding: 1rem 0.5rem;
+        padding-bottom: 70px; /* Adjust for very small screens bottom bar */
     }
     
     input, textarea {
@@ -478,3 +569,91 @@ button.secondary {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Full-screen loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+}
+
+.loading-spinner {
+    text-align: center;
+    color: white;
+}
+
+.loading-dots {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+/* Feedback buttons styling */
+.answer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.feedback-buttons {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.answer-container:hover .feedback-buttons {
+    opacity: 1;
+}
+
+.feedback-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: auto;
+    margin: 0;
+    line-height: 1;
+}
+
+.feedback-btn:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #999;
+}
+
+.feedback-btn.thumbs-up:hover {
+    background-color: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.feedback-btn.thumbs-down:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.feedback-btn:active {
+    transform: scale(0.95);
+}
+

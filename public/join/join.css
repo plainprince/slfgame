@@ -573,4 +573,58 @@ button.primary {
         min-width: 300px;
         font-size: 0.8rem;
     }
+}
+
+/* Feedback buttons styling */
+.answer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.feedback-buttons {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.answer-container:hover .feedback-buttons {
+    opacity: 1;
+}
+
+.feedback-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: auto;
+    margin: 0;
+    line-height: 1;
+}
+
+.feedback-btn:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #999;
+}
+
+.feedback-btn.thumbs-up:hover {
+    background-color: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.feedback-btn.thumbs-down:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.feedback-btn:active {
+    transform: scale(0.95);
 } 

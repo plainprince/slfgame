@@ -34,20 +34,26 @@
                     </div>
                     
                     <button type="submit">Create Game & Join as Player</button>
+                    <button type="button" class="secondary" onclick="location.href='/'" data-i18n="back">Back</button>
                 </form>
             </div>
             
             <!-- Split View: Moderator + Player -->
             <div id="split-view" class="split-view hidden">
+                <!-- Persistent Game ID Display -->
+                <div class="persistent-game-info-mod">
+                    <div class="persistent-game-id-mod">
+                        <span class="game-id-label-mod">Game ID:</span>
+                        <span class="game-id-value-mod" id="persistent-game-id-mod"></span>
+                    </div>
+                </div>
+                
                 <!-- Moderator Panel -->
                 <div class="moderator-panel">
                     <h3>Moderator View</h3>
                     <div id="moderator-content">
                         <!-- Game info and controls -->
                         <div id="game-info-mod">
-                            <div class="game-id-display">
-                                <p>Game ID: <span id="game-id-mod"></span></p>
-                            </div>
                             <div id="round-info-mod" class="hidden">
                                 <p>Round <span id="current-round-mod">1</span> - Letter <span id="current-letter-mod">A</span></p>
                             </div>

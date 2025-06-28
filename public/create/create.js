@@ -295,6 +295,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeCategories();
     setupEventListeners();
     setupShareFunctionality();
+    
+    // Initialize button states
+    updateStopRoundButton();
 });
 
 // Listen for language changes
@@ -390,49 +393,184 @@ function setupShareFunctionality() {
 }
 
 function generateQRCode(gameId) {
-    const canvas = document.getElementById('qr-code');
+    const qrContainer = document.getElementById('qr-code');
     
     // Create share URL
     const shareUrl = `${window.location.origin}/join/${gameId}`;
     
-    // Generate QR code using qrcode.js library
+    // Function to actually generate the QR code
+    const generateQR = () => {
+        if (typeof QRCode !== 'undefined') {
+            // Clear any existing QR code
+            qrContainer.innerHTML = '';
+            
+            // Create QR code using qrcodejs library
+            new QRCode(qrContainer, {
+                text: shareUrl,
+                width: 120,
+                height: 120,
+                colorDark: '#667eea',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        } else {
+            // Fallback if library not loaded
+            generateSimpleQR(qrContainer, shareUrl);
+        }
+    };
+    
+    // Check if QRCode library is loaded, if not wait for it
     if (typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(canvas, shareUrl, {
-            width: 120,
-            margin: 1,
-            color: {
-                dark: '#667eea',
-                light: '#ffffff'
-            }
-        }, function (error) {
-            if (error) {
-                console.error('QR Code generation failed:', error);
-                // Fallback to simple placeholder
-                generateSimpleQR(canvas, shareUrl);
-            }
-        });
+        generateQR();
     } else {
-        // Fallback if library not loaded
-        generateSimpleQR(canvas, shareUrl);
+        // Wait for library to load with a timeout
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds maximum wait
+        
+        const checkLibrary = () => {
+            attempts++;
+            if (typeof QRCode !== 'undefined') {
+                generateQR();
+            } else if (attempts < maxAttempts) {
+                setTimeout(checkLibrary, 100);
+            } else {
+                console.warn('QRCode library failed to load, using fallback');
+                generateSimpleQR(qrContainer, shareUrl);
+            }
+        };
+        
+        checkLibrary();
     }
 }
 
-function generateSimpleQR(canvas, text) {
-    const ctx = canvas.getContext('2d');
-    const size = canvas.width;
-    
-    // Simple placeholder
-    ctx.fillStyle = '#667eea';
-    ctx.fillRect(0, 0, size, size);
-    
-    ctx.fillStyle = 'white';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('QR Code', size/2, size/2 - 10);
-    ctx.fillText('(Scan with phone)', size/2, size/2 + 10);
+function generateSimpleQR(container, text) {
+    // Create a simple placeholder
+    container.innerHTML = `
+        <div style="
+            width: 120px;
+            height: 120px;
+            background-color: #667eea;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        ">
+            <div>QR Code</div>
+            <div>(Scan with phone)</div>
+        </div>
+    `;
     
     // Store the URL for potential use
-    canvas.dataset.url = text;
+    container.dataset.url = text;
+}
+
+function generatePersistentQRCode(gameId) {
+    const container = document.getElementById('persistent-qr-code');
+    if (!container) return;
+    
+    const shareUrl = `${window.location.origin}/join/${gameId}`;
+    
+    // Try to use QRCode library if available
+    const generateQR = () => {
+        try {
+            if (typeof QRCode !== 'undefined') {
+                container.innerHTML = '';
+                new QRCode(container, {
+                    text: shareUrl,
+                    width: 60,
+                    height: 60,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } else {
+                // Fallback to simple QR placeholder
+                container.innerHTML = `
+                    <div style="
+                        width: 60px;
+                        height: 60px;
+                        background-color: #667eea;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        font-size: 8px;
+                        text-align: center;
+                        font-family: Arial, sans-serif;
+                        border-radius: 4px;
+                    ">
+                        <div>QR</div>
+                        <div>Code</div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.warn('QR Code generation failed, using fallback:', error);
+            container.innerHTML = `
+                <div style="
+                    width: 60px;
+                    height: 60px;
+                    background-color: #667eea;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    font-size: 8px;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                    border-radius: 4px;
+                ">
+                    <div>QR</div>
+                    <div>Code</div>
+                </div>
+            `;
+        }
+    };
+
+    // Check if QRCode library is loaded
+    if (typeof QRCode !== 'undefined') {
+        generateQR();
+    } else {
+        // Wait a bit for library to load, then fallback if needed
+        const checkLibrary = () => {
+            if (typeof QRCode !== 'undefined') {
+                generateQR();
+            } else {
+                setTimeout(() => {
+                    if (typeof QRCode !== 'undefined') {
+                        generateQR();
+                    } else {
+                        container.innerHTML = `
+                            <div style="
+                                width: 60px;
+                                height: 60px;
+                                background-color: #667eea;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: center;
+                                align-items: center;
+                                color: white;
+                                font-size: 8px;
+                                text-align: center;
+                                font-family: Arial, sans-serif;
+                                border-radius: 4px;
+                            ">
+                                <div>QR</div>
+                                <div>Code</div>
+                            </div>
+                        `;
+                    }
+                }, 500);
+            }
+        };
+        setTimeout(checkLibrary, 100);
+    }
 }
 
 async function copyShareLink() {
@@ -689,6 +827,12 @@ socket.on('gameEnded', (data) => {
     
     console.log('Game ended, received data:', data);
     
+    // Hide persistent game info since game is over
+    const persistentGameInfo = document.getElementById('persistent-game-info');
+    if (persistentGameInfo) {
+        persistentGameInfo.style.display = 'none';
+    }
+    
     // Clear localStorage since game is over
     localStorage.removeItem(GAME_DATA_KEY);
     
@@ -757,10 +901,19 @@ socket.on('roundStarted', (data) => {
     currentLetter = data.letter;
     categories = data.categories;
     
-    // Update game ID display during game
-    const gameIdDisplay = document.getElementById('game-id-display');
-    if (gameIdDisplay) {
-        gameIdDisplay.textContent = data.gameId;
+    // Update persistent game ID display
+    const persistentGameId = document.getElementById('persistent-game-id');
+    if (persistentGameId) {
+        persistentGameId.textContent = data.gameId;
+    }
+    
+    // Generate persistent QR code
+    generatePersistentQRCode(data.gameId);
+    
+    // Show persistent game info
+    const persistentGameInfo = document.getElementById('persistent-game-info');
+    if (persistentGameInfo) {
+        persistentGameInfo.style.display = 'flex';
     }
     
     // Update UI
@@ -796,6 +949,9 @@ socket.on('roundEnded', (data) => {
     // Hide stop round button, show next round button after round ends
     document.getElementById('stop-round-btn').style.display = 'none';
     document.getElementById('next-round-btn').style.display = 'inline-block';
+    
+    // Ensure loading overlay is hidden
+    hideLoadingOverlay();
     
     // Display results
     displayResults(data);
@@ -911,15 +1067,42 @@ function hideHandApprovalModal() {
     }
 }
 
+function showLoadingOverlay() {
+    // Remove any existing overlay
+    hideLoadingOverlay();
+    
+    // Create loading overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.id = 'round-stop-loading';
+    
+    overlay.innerHTML = `
+        <div class="loading-spinner">
+            <div class="loading-dots">⋯</div>
+            <div class="loading-text">Stopping Round...</div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('round-stop-loading');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
 function updateStopRoundButton() {
     const stopBtn = document.getElementById('stop-round-btn');
     if (!stopBtn) return;
 
     if (roundStopLoading) {
-        stopBtn.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Stopping Round...';
+        showLoadingOverlay();
         stopBtn.disabled = true;
     } else {
-        stopBtn.innerHTML = 'Stop Round';
+        // Don't hide loading overlay here - let it stay until results are shown
+        stopBtn.innerHTML = window.i18n.t('stopRound');
         stopBtn.disabled = false;
     }
 }

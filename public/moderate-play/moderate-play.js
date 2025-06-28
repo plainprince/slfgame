@@ -6,6 +6,7 @@ let categories = ['Stadt', 'Land', 'Fluss', 'Name', 'Tier'];
 let currentRound = 0;
 let currentLetter = '';
 let moderatorName = '';
+let roundStopLoading = false; // Track loading state
 
 // DOM elements
 const gameSetup = document.getElementById('game-setup');
@@ -17,6 +18,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await window.i18n.init();
     setupEventListeners();
     initializeCategories();
+    
+    // Initialize button states
+    updateStopRoundButton();
 });
 
 function setupEventListeners() {
@@ -102,6 +106,7 @@ function startGameRound() {
 }
 
 function stopRound() {
+    if (roundStopLoading) return; // Prevent double clicking
     socket.emit('stopRound', { gameId });
 }
 
@@ -186,7 +191,17 @@ function displayResults(resultsData) {
                 cssClass = sameAnswers === 1 ? 'answer-valid' : 'answer-duplicate';
             }
             
-            html += `<td><span class="${cssClass}">${answer || '-'}</span></td>`;
+            html += `<td>
+                <div class="answer-container">
+                    <span class="${cssClass}">${answer || '-'}</span>
+                    ${answer ? `
+                        <div class="feedback-buttons">
+                            <button class="feedback-btn thumbs-up" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, true)" title="Correct validation">👍</button>
+                            <button class="feedback-btn thumbs-down" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, false)" title="Incorrect validation">👎</button>
+                        </div>
+                    ` : ''}
+                </div>
+            </td>`;
         });
         
         // Add scores
@@ -263,8 +278,8 @@ socket.on('gameCreated', (data) => {
     gameId = data.gameId;
     categories = data.categories;
     
-    // Update game info
-    document.getElementById('game-id-mod').textContent = gameId;
+    // Update persistent game info
+    document.getElementById('persistent-game-id-mod').textContent = gameId;
     
     // Set up iframe to join the game as a player
     const iframe = document.getElementById('player-iframe');
@@ -285,6 +300,12 @@ socket.on('roundStarted', (data) => {
     currentLetter = data.letter;
     categories = data.categories;
     
+    // Update persistent game ID (ensure it stays visible)
+    const persistentGameId = document.getElementById('persistent-game-id-mod');
+    if (persistentGameId) {
+        persistentGameId.textContent = data.gameId;
+    }
+    
     // Update moderator UI
     document.getElementById('current-round-mod').textContent = currentRound;
     document.getElementById('current-letter-mod').textContent = currentLetter;
@@ -294,6 +315,10 @@ socket.on('roundStarted', (data) => {
     document.getElementById('stop-round-btn-mod').classList.remove('hidden');
     document.getElementById('start-game-btn-mod').style.display = 'none';
     document.getElementById('next-round-btn').style.display = 'none';
+    
+    // Reset loading state
+    roundStopLoading = false;
+    updateStopRoundButton();
 });
 
 socket.on('handRaisedNotification', (data) => {
@@ -328,6 +353,9 @@ socket.on('roundEnded', (data) => {
     document.getElementById('start-game-btn-mod').style.display = 'inline-block';
     document.getElementById('next-round-btn').style.display = 'inline-block';
     
+    // Ensure loading overlay is hidden
+    hideLoadingOverlay();
+    
     // Display results
     displayResults(data);
     showSection('results');
@@ -349,4 +377,90 @@ socket.on('disconnect', () => {
 
 socket.on('connect', () => {
     console.log('Connected to server');
-}); 
+});
+
+socket.on('roundStopLoading', (loading) => {
+    roundStopLoading = loading;
+    updateStopRoundButton();
+});
+
+function showLoadingOverlay() {
+    // Remove any existing overlay
+    hideLoadingOverlay();
+    
+    // Create loading overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.id = 'round-stop-loading';
+    
+    overlay.innerHTML = `
+        <div class="loading-spinner">
+            <div class="loading-dots">⋯</div>
+            <div class="loading-text">Stopping Round...</div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('round-stop-loading');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+function updateStopRoundButton() {
+    const stopBtn = document.getElementById('stop-round-btn-mod');
+    if (!stopBtn) return;
+
+    if (roundStopLoading) {
+        showLoadingOverlay();
+        stopBtn.disabled = true;
+    } else {
+        // Don't hide loading overlay here - let it stay until results are shown
+        stopBtn.innerHTML = window.i18n.t('stopRound');
+        stopBtn.disabled = false;
+    }
+}
+
+// Feedback submission function
+async function submitFeedback(answer, category, letter, aiSaid, userSays) {
+    try {
+        const response = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                answer: answer,
+                category: category,
+                letter: letter,
+                aiSaid: aiSaid,
+                userSays: userSays
+            })
+        });
+        
+        if (response.ok) {
+            // Visual feedback - change button color temporarily
+            const buttons = document.querySelectorAll(`button[onclick*="${answer}"][onclick*="${category}"]`);
+            buttons.forEach(btn => {
+                if ((userSays && btn.classList.contains('thumbs-up')) || 
+                    (!userSays && btn.classList.contains('thumbs-down'))) {
+                    btn.style.backgroundColor = '#28a745';
+                    btn.style.color = 'white';
+                    setTimeout(() => {
+                        btn.style.backgroundColor = '';
+                        btn.style.color = '';
+                    }, 2000);
+                }
+            });
+            
+            console.log('Feedback submitted successfully');
+        } else {
+            console.error('Failed to submit feedback');
+        }
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+    }
+} 

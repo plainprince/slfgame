@@ -1,0 +1,18 @@
+{
+  "feedback": {
+    "berlin_stadt_b": true,
+    "lion_stadt_l": false,
+    "paris_stadt_p": true,
+    "dog_stadt_d": false,
+    "würzburg_stadt_w": true,
+    "weißrussland_land_w": true,
+    "weser_fluss_w": true,
+    "walter_name_w": true,
+    "wolf_tier_w": true,
+    "potsdam_stadt_p": true,
+    "polen_land_p": true,
+    "po_fluss_p": true,
+    "petra_name_p": true,
+    "panda_tier_p": true
+  }
+}
