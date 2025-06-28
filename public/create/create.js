@@ -1015,43 +1015,71 @@ function showHandApprovalModal(data) {
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 10000;
+        z-index: 10001;
+        padding: 20px;
+        box-sizing: border-box;
     `;
 
     let answersHtml = '';
     categories.forEach(category => {
         const answer = data.answers[category] || '';
-        answersHtml += `<p><strong>${category}:</strong> ${answer}</p>`;
+        answersHtml += `<p style="margin: 8px 0; word-break: break-word;"><strong>${category}:</strong> ${answer}</p>`;
     });
 
     modal.innerHTML = `
-        <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">
-            <h3>✋ ${data.playerName} raised their hand!</h3>
-            <div style="margin: 16px 0;">
-                <h4>Their answers:</h4>
-                ${answersHtml}
+        <div style="
+            background: white; 
+            border-radius: 12px; 
+            padding: 20px; 
+            max-width: 500px; 
+            width: 100%; 
+            max-height: 90vh; 
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        ">
+            <h3 style="margin: 0 0 16px 0; text-align: center; color: #333;">✋ ${data.playerName} raised their hand!</h3>
+            <div style="margin: 16px 0; max-height: 300px; overflow-y: auto;">
+                <h4 style="margin: 0 0 12px 0; color: #666;">Their answers:</h4>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
+                    ${answersHtml}
+                </div>
             </div>
-            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+            <div style="
+                display: flex; 
+                flex-direction: column;
+                gap: 12px; 
+                margin-top: 20px;
+            ">
                 <button onclick="approveHand(false)" style="
-                    padding: 10px 20px;
+                    padding: 12px 20px;
                     border: 2px solid #dc3545;
                     background: white;
                     color: #dc3545;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     cursor: pointer;
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: 500;
-                ">Deny (Invalid)</button>
+                    transition: all 0.2s;
+                    width: 100%;
+                " onmouseover="this.style.background='#dc3545'; this.style.color='white';"
+                   onmouseout="this.style.background='white'; this.style.color='#dc3545';">
+                    ❌ Deny (Invalid Answers)
+                </button>
                 <button onclick="approveHand(true)" style="
-                    padding: 10px 20px;
+                    padding: 12px 20px;
                     border: 2px solid #28a745;
                     background: #28a745;
                     color: white;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     cursor: pointer;
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: 500;
-                ">Approve (End Round)</button>
+                    transition: all 0.2s;
+                    width: 100%;
+                " onmouseover="this.style.background='#218838';"
+                   onmouseout="this.style.background='#28a745';">
+                    ✅ Approve (End Round)
+                </button>
             </div>
         </div>
     `;

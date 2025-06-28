@@ -425,12 +425,6 @@ io.on('connection', (socket) => {
 
         const game = games[gameId];
 
-        // Check if this is the game creator
-        if (game.creatorId !== socket.id) {
-            socket.emit('error', { error: 'Only the game creator can start rounds' });
-            return;
-        }
-
         if (game.players.length < 1) {
             socket.emit('error', { error: 'Need at least 1 player to start' });
             return;
@@ -630,12 +624,6 @@ io.on('connection', (socket) => {
 
         const game = games[gameId];
 
-        // Only the game creator can stop rounds
-        if (game.creatorId !== socket.id) {
-            socket.emit('error', { error: 'Only the game creator can stop the round' });
-            return;
-        }
-
         // Show loading state to moderator
         socket.emit('roundStopLoading', true);
 
@@ -659,12 +647,6 @@ io.on('connection', (socket) => {
         }
 
         const game = games[gameId];
-
-        // Only the game creator can end the game
-        if (game.creatorId !== socket.id) {
-            socket.emit('error', { error: 'Only the game creator can end the game' });
-            return;
-        }
 
         console.log(`Ending game ${gameId} - current state: ${game.gameState}, players: ${game.players.length}`);
 

@@ -682,6 +682,12 @@ socket.on('roundStarted', (data) => {
     document.getElementById('submission-text').textContent = 'Fill in your answers...';
     document.getElementById('submission-progress').style.width = '0%';
     
+    // Show stop round button since any player can now stop rounds
+    const stopRoundBtn = document.getElementById('stop-round-btn');
+    if (stopRoundBtn) {
+        stopRoundBtn.style.display = 'inline-block';
+    }
+    
     // Start timer (no time limit now)
     startTimer();
     
@@ -708,6 +714,12 @@ socket.on('roundEnded', (data) => {
     if (roundTimer) {
         clearInterval(roundTimer);
         roundTimer = null;
+    }
+    
+    // Hide stop round button when round ends
+    const stopRoundBtn = document.getElementById('stop-round-btn');
+    if (stopRoundBtn) {
+        stopRoundBtn.style.display = 'none';
     }
     
     // Display results

@@ -18,10 +18,10 @@ else
     cp feedback.json temp
 fi
 
-rm -r temp
-
 cd temp
 
 gcloud compute scp --recurse . slfgame-vm2:~ --zone=europe-west4-a
 
 cd ..
+
+rm -r temp
