@@ -33,6 +33,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -43,14 +52,14 @@
         <div class="button-container">
             <button id="create" data-i18n="createGame">Create Game</button>
             <button id="join" data-i18n="joinGame">Join Game</button>
-            <button id="moderate-play" class="moderate-play-btn">Moderate & Play</button>
+            <!-- <button id="moderate-play" class="moderate-play-btn">Moderate & Play</button> -->
         </div>
         
-        <div class="info-section">
+        <!-- <div class="info-section">
             <p style="color: #666; font-size: 0.9rem; margin-top: 1rem;">
                 <strong>Moderate & Play:</strong> Create a game where you both moderate and participate as a player. Perfect for teachers or group leaders!
             </p>
-        </div>
+        </div> -->
     </div>
 
     <script src="i18n.js"></script>
