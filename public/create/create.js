@@ -830,19 +830,19 @@ function displayResults(resultsData) {
     // Create results table
     let html = `
         <div style="margin-bottom: 2rem;">
-            <h3>Round ${resultsData.round} - Letter "${resultsData.letter}"</h3>
+            <h3>${window.i18n.t('round')} ${resultsData.round} - ${window.i18n.t('letter')} "${resultsData.letter}"</h3>
         </div>
         <table class="results-table">
             <thead>
                 <tr>
-                    <th>Player</th>
+                    <th>${window.i18n.t('player')}</th>
     `;
     
     // Add category headers
     resultsData.categories.forEach(category => {
         html += `<th>${category}</th>`;
     });
-    html += `<th>Round Score</th><th>Total Score</th></tr></thead><tbody>`;
+    html += `<th>${window.i18n.t('roundScore')}</th><th>${window.i18n.t('totalScore')}</th></tr></thead><tbody>`;
     
     // Add player rows
     const players = Object.keys(resultsData.answers[resultsData.categories[0]] || {});
@@ -878,9 +878,9 @@ function displayResults(resultsData) {
     // Add legend
     html += `
         <div style="margin-top: 2rem; font-size: 0.9rem;">
-            <p><span class="answer-valid">●</span> Unique answer (20 points)</p>
-            <p><span class="answer-duplicate">●</span> Duplicate answer (10 points)</p>
-            <p><span class="answer-invalid">●</span> Invalid answer (0 points)</p>
+            <p><span class="answer-valid">●</span> ${window.i18n.t('uniqueAnswer')}</p>
+            <p><span class="answer-duplicate">●</span> ${window.i18n.t('duplicateAnswer')}</p>
+            <p><span class="answer-invalid">●</span> ${window.i18n.t('invalidAnswer')}</p>
         </div>
     `;
     
@@ -941,15 +941,15 @@ function showFinalResults(data) {
     const content = document.getElementById('results-content');
     let html = `
         <div style="text-align: center; margin-bottom: 2rem;">
-            <h2>🎉 Game Over!</h2>
-            <h3>Final Scores</h3>
+            <h2>🎉 ${window.i18n.t('gameOver')}!</h2>
+            <h3>${window.i18n.t('finalScores')}</h3>
         </div>
         <table class="results-table">
             <thead>
                 <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Final Score</th>
+                    <th>${window.i18n.t('rank')}</th>
+                    <th>${window.i18n.t('player')}</th>
+                    <th>${window.i18n.t('finalScore')}</th>
                 </tr>
             </thead>
             <tbody>
@@ -961,7 +961,7 @@ function showFinalResults(data) {
             <tr>
                 <td><strong>${medal} ${index + 1}</strong></td>
                 <td><strong>${player.name}</strong></td>
-                <td><strong>${player.score} pts</strong></td>
+                <td><strong>${player.score} ${window.i18n.t('pts')}</strong></td>
             </tr>
         `;
     });
@@ -970,9 +970,9 @@ function showFinalResults(data) {
             </tbody>
         </table>
         <div style="text-align: center; margin-top: 2rem;">
-            <p>Thanks for playing Stadt Land Fluss!</p>
+            <p>${window.i18n.t('thanksForPlaying')}</p>
             <button class="btn btn-primary return-home-btn" style="margin-top: 1rem;">
-                Return to Home
+                ${window.i18n.t('returnToHome')}
             </button>
         </div>
     `;
@@ -992,7 +992,7 @@ function showFinalResults(data) {
     document.getElementById('next-round-btn').style.display = 'none';
     
     showSection('results');
-    headerSubtitle.textContent = 'Game Over';
+    headerSubtitle.textContent = window.i18n.t('gameOver');
 }
 
 socket.on('playerJoined', (data) => {
@@ -1142,9 +1142,9 @@ function showHandApprovalModal(data) {
             overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         ">
-            <h3 style="margin: 0 0 16px 0; text-align: center; color: #333;">✋ ${data.playerName} raised their hand!</h3>
+            <h3 style="margin: 0 0 16px 0; text-align: center; color: #333;">${window.i18n.t('handApprovalTitle', { playerName: data.playerName })}</h3>
             <div style="margin: 16px 0; max-height: 300px; overflow-y: auto;">
-                <h4 style="margin: 0 0 12px 0; color: #666;">Their answers:</h4>
+                <h4 style="margin: 0 0 12px 0; color: #666;">${window.i18n.t('theirAnswers')}</h4>
                 <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
                     ${answersHtml}
                 </div>
@@ -1167,7 +1167,7 @@ function showHandApprovalModal(data) {
                     transition: all 0.2s;
                     width: 100%;
                 ">
-                    ❌ Deny (Invalid Answers)
+                    ${window.i18n.t('denyInvalidAnswers')}
                 </button>
                 <button class="approve-hand-btn" style="
                     padding: 12px 20px;
@@ -1181,7 +1181,7 @@ function showHandApprovalModal(data) {
                     transition: all 0.2s;
                     width: 100%;
                 ">
-                    ✅ Approve (End Round)
+                    ${window.i18n.t('approveEndRound')}
                 </button>
             </div>
         </div>
@@ -1244,7 +1244,7 @@ function showLoadingOverlay() {
     overlay.innerHTML = `
         <div class="loading-spinner">
             <div class="loading-dots">⋯</div>
-            <div class="loading-text">Stopping Round...</div>
+            <div class="loading-text">${window.i18n.t('stoppingRound')}</div>
         </div>
     `;
     
@@ -1308,4 +1308,9 @@ socket.on('handProcessed', () => {
 socket.on('roundStopLoading', (loading) => {
     roundStopLoading = loading;
     updateStopRoundButton();
+});
+
+
+document.querySelector('#back-btn').addEventListener('click', () => {
+    window.location.href = '/';
 });

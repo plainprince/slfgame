@@ -1,47 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- SEO Meta Tags -->
     <title data-i18n="title">Stadt Land Fluss - Online Word Game | Play with Friends</title>
-    <meta name="description" content="Play Stadt Land Fluss online with friends! The classic German word game (Scattergories) now available as a free multiplayer web game. Create or join games instantly.">
-    <meta name="keywords" content="Stadt Land Fluss, online game, word game, scattergories, multiplayer, German game, free game, party game, family game, categories game">
+    <meta name="description"
+        content="Play Stadt Land Fluss online with friends! The classic German word game (Scattergories) now available as a free multiplayer web game. Create or join games instantly.">
+    <meta name="keywords"
+        content="Stadt Land Fluss, online game, word game, scattergories, multiplayer, German game, free game, party game, family game, categories game">
     <meta name="author" content="Stadt Land Fluss Game">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
     <meta name="revisit-after" content="7 days">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://slfgame.com/">
     <meta property="og:title" content="Stadt Land Fluss - Online Word Game">
-    <meta property="og:description" content="Play the classic German word game online with friends! Free multiplayer Stadt Land Fluss game.">
+    <meta property="og:description"
+        content="Play the classic German word game online with friends! Free multiplayer Stadt Land Fluss game.">
     <meta property="og:site_name" content="Stadt Land Fluss Online">
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://slfgame.com/">
     <meta property="twitter:title" content="Stadt Land Fluss - Online Word Game">
-    <meta property="twitter:description" content="Play the classic German word game online with friends! Free multiplayer Stadt Land Fluss game.">
-    
+    <meta property="twitter:description"
+        content="Play the classic German word game online with friends! Free multiplayer Stadt Land Fluss game.">
+
     <!-- Additional SEO -->
     <meta name="theme-color" content="#667eea">
     <meta name="application-name" content="Stadt Land Fluss Online">
     <meta name="apple-mobile-web-app-title" content="Stadt Land Fluss">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
     <link rel="apple-touch-icon" href="/icon-192.png">
-    
+
     <link rel="stylesheet" href="styles.css">
     <style>
         .privacy-notice {
@@ -59,52 +64,52 @@
             z-index: 1000;
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        
+
         .privacy-notice.hidden {
             opacity: 0;
             transform: translateY(20px);
             pointer-events: none;
         }
-        
+
         .privacy-notice-title {
             font-weight: 600;
             color: #333;
             margin: 0 0 8px 0;
             font-size: 14px;
         }
-        
+
         .privacy-notice-text {
             color: #666;
             margin: 0 0 8px 0;
         }
-        
+
         .privacy-notice-link {
             color: #007bff;
             text-decoration: none;
             font-size: 13px;
         }
-        
+
         .privacy-notice-link:hover {
             text-decoration: underline;
         }
-        
+
         .privacy-notice-links {
             display: flex;
             gap: 12px;
         }
-        
+
         .privacy-notice-close-link {
             color: #666;
             text-decoration: none;
             font-size: 13px;
             cursor: pointer;
         }
-        
+
         .privacy-notice-close-link:hover {
             color: #333;
             text-decoration: underline;
         }
-        
+
         .privacy-modal {
             display: none;
             position: fixed;
@@ -117,7 +122,7 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .privacy-modal-content {
             background: white;
             padding: 24px;
@@ -127,7 +132,7 @@
             max-height: 80vh;
             overflow-y: auto;
         }
-        
+
         .privacy-modal-header {
             display: flex;
             justify-content: space-between;
@@ -136,12 +141,12 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 12px;
         }
-        
+
         .privacy-modal h2 {
             margin: 0;
             color: #333;
         }
-        
+
         .privacy-modal-close {
             background: none;
             border: none;
@@ -150,39 +155,43 @@
             color: #666;
             padding: 0;
         }
-        
+
         .privacy-modal-close:hover {
             color: #333;
         }
-        
+
         .privacy-modal p {
             margin-bottom: 12px;
             line-height: 1.5;
             color: #555;
         }
-        
+
         .privacy-modal ul {
             margin: 12px 0;
             padding-left: 20px;
         }
-        
+
         .privacy-modal li {
             margin-bottom: 8px;
             color: #555;
         }
     </style>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6410356171281722"
+        crossorigin="anonymous"></script>
 </head>
+
 <body>
     <div class="container">
         <h1 data-i18n="title">Stadt Land Fluss</h1>
         <p class="subtitle" data-i18n="subtitle">The classic word game - now online!</p>
-        
+
         <div class="button-container">
             <button id="create" data-i18n="createGame">Create Game</button>
             <button id="join" data-i18n="joinGame">Join Game</button>
             <!-- <button id="moderate-play" class="moderate-play-btn">Moderate & Play</button> -->
         </div>
-        
+
         <!-- <div class="info-section">
             <p style="color: #666; font-size: 0.9rem; margin-top: 1rem;">
                 <strong>Moderate & Play:</strong> Create a game where you both moderate and participate as a player. Perfect for teachers or group leaders!
@@ -209,11 +218,15 @@
             </div>
             <p>This game uses minimal technical storage required for functionality:</p>
             <ul>
-                <li><strong>Language Preference:</strong> Your selected language is stored locally to remember your choice</li>
-                <li><strong>Game Data:</strong> Temporary game state is stored locally during active games and automatically cleared when games end</li>
-                <li><strong>IP Geolocation:</strong> We use your IP address only to detect your country for initial language selection. No location data is stored</li>
+                <li><strong>Language Preference:</strong> Your selected language is stored locally to remember your
+                    choice</li>
+                <li><strong>Game Data:</strong> Temporary game state is stored locally during active games and
+                    automatically cleared when games end</li>
+                <li><strong>IP Geolocation:</strong> We use your IP address only to detect your country for initial
+                    language selection. No location data is stored</li>
             </ul>
-            <p>We do not use tracking cookies or store any personal information. All data remains on your device and is not shared with third parties.</p>
+            <p>We do not use tracking cookies or store any personal information. All data remains on your device and is
+                not shared with third parties.</p>
         </div>
     </div>
 
@@ -221,4 +234,5 @@
     <script src="main.js"></script>
     <script src="privacyNotice.js"></script>
 </body>
+
 </html>

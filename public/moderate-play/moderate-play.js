@@ -23,6 +23,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateStopRoundButton();
 });
 
+// Listen for language changes
+window.addEventListener('languageChanged', (event) => {
+    initializeCategories();
+    // Update stop round button text
+    updateStopRoundButton();
+});
+
 function setupEventListeners() {
     // Create game form
     document.getElementById('createForm').addEventListener('submit', (e) => {
@@ -96,12 +103,12 @@ async function createGame() {
     moderatorName = document.getElementById('moderator-name').value.trim();
     
     if (!moderatorName) {
-        alert('Please enter your name');
+        alert(window.i18n.t('pleaseEnterName'));
         return;
     }
 
     if (categories.length === 0) {
-        alert('Please add at least one category');
+        alert(window.i18n.t('addAtLeastOneCategory'));
         return;
     }
 
@@ -123,7 +130,7 @@ function stopRound() {
 }
 
 async function endGame() {
-    const confirmed = confirm('Are you sure you want to end the game?');
+    const confirmed = confirm(window.i18n.t('confirmEndGame'));
     if (confirmed) {
         socket.emit('endGame', { gameId });
     }
@@ -153,12 +160,13 @@ function updatePlayersList(players) {
             <div>
                 <span class="player-name">${player.name}</span>
             </div>
-            <span class="player-score">${player.score} pts</span>
+            <span class="player-score">${player.score} ${window.i18n.t('pts')}</span>
         `;
         playerList.appendChild(li);
     });
     
-    playersCount.textContent = `${players.length} players joined`;
+    const playerText = players.length === 1 ? window.i18n.t('player') : window.i18n.t('playersJoined');
+    playersCount.textContent = `${players.length} ${playerText}`;
     
     // Enable start button if at least 1 player (moderator will also join as player)
     startBtn.disabled = players.length < 1;
@@ -170,19 +178,19 @@ function displayResults(resultsData) {
     // Create results table
     let html = `
         <div style="margin-bottom: 2rem;">
-            <h3>Round ${resultsData.round} - Letter "${resultsData.letter}"</h3>
+            <h3>${window.i18n.t('round')} ${resultsData.round} - ${window.i18n.t('letter')} "${resultsData.letter}"</h3>
         </div>
         <table class="results-table">
             <thead>
                 <tr>
-                    <th>Player</th>
+                    <th>${window.i18n.t('player')}</th>
     `;
     
     // Add category headers
     resultsData.categories.forEach(category => {
         html += `<th>${category}</th>`;
     });
-    html += `<th>Round Score</th><th>Total Score</th></tr></thead><tbody>`;
+    html += `<th>${window.i18n.t('roundScore')}</th><th>${window.i18n.t('totalScore')}</th></tr></thead><tbody>`;
     
     // Add player rows
     const players = Object.keys(resultsData.answers[resultsData.categories[0]] || {});
@@ -228,9 +236,9 @@ function displayResults(resultsData) {
     // Add legend
     html += `
         <div style="margin-top: 2rem; font-size: 0.9rem;">
-            <p><span class="answer-valid">●</span> Unique answer (20 points)</p>
-            <p><span class="answer-duplicate">●</span> Duplicate answer (10 points)</p>
-            <p><span class="answer-invalid">●</span> Invalid answer (0 points)</p>
+            <p><span class="answer-valid">●</span> ${window.i18n.t('uniqueAnswer')}</p>
+            <p><span class="answer-duplicate">●</span> ${window.i18n.t('duplicateAnswer')}</p>
+            <p><span class="answer-invalid">●</span> ${window.i18n.t('invalidAnswer')}</p>
         </div>
     `;
     
@@ -253,15 +261,15 @@ function showFinalResults(data) {
     const content = document.getElementById('results-content');
     let html = `
         <div style="text-align: center; margin-bottom: 2rem;">
-            <h2>🎉 Game Over!</h2>
-            <h3>Final Scores</h3>
+            <h2>🎉 ${window.i18n.t('gameOver')}!</h2>
+            <h3>${window.i18n.t('finalScores')}</h3>
         </div>
         <table class="results-table">
             <thead>
                 <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Final Score</th>
+                    <th>${window.i18n.t('rank')}</th>
+                    <th>${window.i18n.t('player')}</th>
+                    <th>${window.i18n.t('finalScore')}</th>
                 </tr>
             </thead>
             <tbody>
@@ -273,7 +281,7 @@ function showFinalResults(data) {
             <tr>
                 <td><strong>${medal} ${index + 1}</strong></td>
                 <td><strong>${player.name}</strong></td>
-                <td><strong>${player.score} pts</strong></td>
+                <td><strong>${player.score} ${window.i18n.t('pts')}</strong></td>
             </tr>
         `;
     });
@@ -282,9 +290,9 @@ function showFinalResults(data) {
             </tbody>
         </table>
         <div style="text-align: center; margin-top: 2rem;">
-            <p>Thanks for playing Stadt Land Fluss!</p>
+            <p>${window.i18n.t('thanksForPlaying')}</p>
             <button class="btn btn-primary return-home-btn" style="margin-top: 1rem;">
-                Return to Home
+                ${window.i18n.t('returnToHome')}
             </button>
         </div>
     `;
@@ -371,7 +379,7 @@ socket.on('handRaisedNotification', (data) => {
         z-index: 9999;
         font-weight: 500;
     `;
-    notification.textContent = `✋ ${data.playerName} finished first! (Auto-approved)`;
+    notification.textContent = window.i18n.t('autoApproved', { playerName: data.playerName });
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -428,7 +436,7 @@ function showLoadingOverlay() {
     overlay.innerHTML = `
         <div class="loading-spinner">
             <div class="loading-dots">⋯</div>
-            <div class="loading-text">Stopping Round...</div>
+            <div class="loading-text">${window.i18n.t('stoppingRound')}</div>
         </div>
     `;
     

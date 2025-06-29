@@ -126,7 +126,7 @@ class I18n {
         }
     }
 
-    t(key) {
+    t(key, params = {}) {
         if (!this.initialized) return key;
 
         const keys = key.split('.');
@@ -140,7 +140,16 @@ class I18n {
             }
         }
 
-        return value || key;
+        let result = value || key;
+        
+        // Replace template placeholders
+        if (typeof result === 'string' && Object.keys(params).length > 0) {
+            Object.keys(params).forEach(param => {
+                result = result.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
+            });
+        }
+
+        return result;
     }
 
     updatePage() {

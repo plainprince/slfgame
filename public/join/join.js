@@ -13,6 +13,7 @@ let hasSubmitted = false; // Track if player has submitted this round
 let handRaised = false; // Track if this player has raised their hand
 let someoneRaisedHand = false; // Track if anyone has raised their hand
 
+
 // DOM elements
 const joinForm = document.getElementById('join-form');
 const waitingRoom = document.getElementById('waiting-room');
@@ -35,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Listen for language changes
 window.addEventListener('languageChanged', (event) => {
     updatePlayersListText();
+    updateShowHandButton(); // Update the show hand button text
+    updateDynamicTexts(); // Update any other dynamic texts
 });
 
 function saveGameData() {
@@ -203,7 +206,7 @@ function joinGame() {
     playerName = playerNameInput.value.trim();
     
     if (!gameId || !playerName) {
-        showError('Please enter both Game ID and your name');
+        showError(window.i18n.t('pleaseEnterBothFields'));
         return;
     }
     
@@ -284,26 +287,26 @@ function updateShowHandButton() {
 
     if (handRaised) {
         showHandBtn.style.display = 'inline-block';
-        showHandBtn.textContent = 'Hand Raised! ✋';
+        showHandBtn.textContent = window.i18n.t('handRaised');
         showHandBtn.disabled = true;
         showHandBtn.style.backgroundColor = '#28a745';
-        showHandBtn.title = 'Your hand is raised! Waiting for moderator approval.';
+        showHandBtn.title = window.i18n.t('handRaisedWaiting');
         showHandBtn.classList.remove('pulse');
         
         if (feedbackDiv) {
-            feedbackDiv.textContent = '✋ Your hand is raised! Waiting for moderator...';
+            feedbackDiv.textContent = window.i18n.t('handRaisedWaiting');
             feedbackDiv.className = 'show-hand-feedback warning';
         }
     } else if (someoneRaisedHand) {
         showHandBtn.style.display = 'inline-block';
-        showHandBtn.textContent = 'Someone Raised Hand';
+        showHandBtn.textContent = window.i18n.t('someoneRaisedHand');
         showHandBtn.disabled = true;
         showHandBtn.style.backgroundColor = '#6c757d';
-        showHandBtn.title = 'Someone else already raised their hand.';
+        showHandBtn.title = window.i18n.t('someoneElseRaisedFirst');
         showHandBtn.classList.remove('pulse');
         
         if (feedbackDiv) {
-            feedbackDiv.textContent = '⏳ Someone else raised their hand first';
+            feedbackDiv.textContent = window.i18n.t('someoneElseRaisedFirst');
             feedbackDiv.className = 'show-hand-feedback warning';
         }
     } else {
@@ -382,6 +385,23 @@ function updatePlayersListText(count = null) {
     }
 }
 
+function updateDynamicTexts() {
+    // Update submission text if visible
+    const submissionText = document.getElementById('submission-text');
+    if (submissionText && submissionText.textContent.includes('Fill in')) {
+        submissionText.textContent = window.i18n.t('fillAnswers');
+    }
+    
+    // Update feedback text if visible
+    const feedbackDiv = document.getElementById('show-hand-feedback');
+    if (feedbackDiv && currentLetter) {
+        const currentText = feedbackDiv.textContent;
+        if (currentText.includes('Fill in all answers') || currentText.includes('Fülle alle Antworten')) {
+            feedbackDiv.textContent = window.i18n.t('fillAllAnswersToRaise', { letter: currentLetter });
+        }
+    }
+}
+
 function createAnswersForm() {
     const form = document.getElementById('answers-form');
     form.innerHTML = '';
@@ -428,7 +448,7 @@ function createAnswersForm() {
     // Initial validation and set initial feedback
     const feedbackDiv = document.getElementById('show-hand-feedback');
     if (feedbackDiv) {
-        feedbackDiv.textContent = `Fill in all answers starting with "${currentLetter}" to raise your hand`;
+        feedbackDiv.textContent = window.i18n.t('fillAllAnswersToRaise', { letter: currentLetter });
         feedbackDiv.className = 'show-hand-feedback';
     }
     validateAndUpdateShowHandButton();
@@ -448,13 +468,13 @@ function validateAnswers() {
         
         if (!answer) {
             isValid = false;
-            invalidReason = `Please fill in an answer for ${category}`;
+            invalidReason = window.i18n.t('pleaseFillAnswer', { category });
             break;
         }
         
         if (!answer.toUpperCase().startsWith(currentLetter)) {
             isValid = false;
-            invalidReason = `Your ${category} answer "${answer}" must start with ${currentLetter}`;
+            invalidReason = window.i18n.t('answerMustStartWith', { category, answer, letter: currentLetter });
             break;
         }
     }
@@ -480,13 +500,13 @@ function validateAndUpdateShowHandButton() {
         // All answers valid - show button and enable it
         showHandBtn.style.display = 'inline-block';
         showHandBtn.disabled = false;
-        showHandBtn.textContent = 'Show Hand ✋';
+        showHandBtn.textContent = window.i18n.t('showHand');
         showHandBtn.style.backgroundColor = '#007bff';
-        showHandBtn.title = 'All answers look good! Click to raise your hand.';
+        showHandBtn.title = window.i18n.t('readyToRaiseHand');
         showHandBtn.classList.add('pulse');
         
         if (feedbackDiv) {
-            feedbackDiv.textContent = '✅ Ready to raise your hand!';
+            feedbackDiv.textContent = window.i18n.t('readyToRaiseHand');
             feedbackDiv.className = 'show-hand-feedback success';
         }
     } else {
@@ -534,19 +554,19 @@ function displayResults(resultsData) {
     // Create results table
     let html = `
         <div style="margin-bottom: 2rem;">
-            <h3>Round ${resultsData.round} - Letter "${resultsData.letter}"</h3>
+            <h3>${window.i18n.t('round')} ${resultsData.round} - ${window.i18n.t('letter')} "${resultsData.letter}"</h3>
         </div>
         <table class="results-table">
             <thead>
                 <tr>
-                    <th>Player</th>
+                    <th>${window.i18n.t('player')}</th>
     `;
     
     // Add category headers
     resultsData.categories.forEach(category => {
         html += `<th>${category}</th>`;
     });
-    html += `<th>Round Score</th><th>Total Score</th></tr></thead><tbody>`;
+    html += `<th>${window.i18n.t('roundScore')}</th><th>${window.i18n.t('totalScore')}</th></tr></thead><tbody>`;
     
     // Add player rows
     const players = Object.keys(resultsData.answers[resultsData.categories[0]] || {});
@@ -572,8 +592,7 @@ function displayResults(resultsData) {
                     <span class="${cssClass}">${answer || '-'}</span>
                     ${answer ? `
                         <div class="feedback-buttons">
-                            <button class="feedback-btn thumbs-up" data-answer="${answer}" data-category="${category}" data-letter="${resultsData.letter}" data-ai-said="${isValid}" data-user-says="true" title="Correct validation">👍</button>
-                            <button class="feedback-btn thumbs-down" data-answer="${answer}" data-category="${category}" data-letter="${resultsData.letter}" data-ai-said="${isValid}" data-user-says="false" title="Incorrect validation">👎</button>
+                            <button class="feedback-btn thumbs-down" data-answer="${answer}" data-category="${category}" data-letter="${resultsData.letter}" data-ai-said="${isValid}" data-user-says="${!isValid}" title="AI got this wrong">👎</button>
                         </div>
                     ` : ''}
                 </div>
@@ -592,23 +611,36 @@ function displayResults(resultsData) {
     // Add legend
     html += `
         <div style="margin-top: 2rem; font-size: 0.9rem;">
-            <p><span class="answer-valid">●</span> Unique answer (20 points)</p>
-            <p><span class="answer-duplicate">●</span> Duplicate answer (10 points)</p>
-            <p><span class="answer-invalid">●</span> Invalid answer (0 points)</p>
+            <p><span class="answer-valid">●</span> ${window.i18n.t('uniqueAnswer')}</p>
+            <p><span class="answer-duplicate">●</span> ${window.i18n.t('duplicateAnswer')}</p>
+            <p><span class="answer-invalid">●</span> ${window.i18n.t('invalidAnswer')}</p>
+            <p style="margin-top: 10px;"><strong>👎</strong> ${window.i18n.t('clickToReportErrors')}</p>
         </div>
     `;
     
     content.innerHTML = html;
     
-    // Add event listeners for feedback buttons
-    content.querySelectorAll('.feedback-btn').forEach(button => {
+    // Immediately submit positive feedback for all answers (will be overwritten by negative feedback if needed)
+    submitAllPositiveFeedback(resultsData);
+    
+    // Add event listeners for thumbs down buttons
+    content.querySelectorAll('.thumbs-down').forEach(button => {
         button.addEventListener('click', () => {
             const answer = button.dataset.answer;
             const category = button.dataset.category;
             const letter = button.dataset.letter;
             const aiSaid = button.dataset.aiSaid === 'true';
             const userSays = button.dataset.userSays === 'true';
+            
+            // Submit negative feedback (overwriting the positive feedback)
             submitFeedback(answer, category, letter, aiSaid, userSays);
+            
+            // Disable the button after clicking
+            button.disabled = true;
+            button.textContent = '✅';
+            button.style.backgroundColor = '#28a745';
+            button.style.color = 'white';
+            button.title = window.i18n.t('feedbackSubmitted');
         });
     });
 }
@@ -696,7 +728,7 @@ socket.on('roundStarted', (data) => {
     createAnswersForm();
     
     // Reset submission status
-    document.getElementById('submission-text').textContent = 'Fill in your answers...';
+    document.getElementById('submission-text').textContent = window.i18n.t('fillAnswers');
     document.getElementById('submission-progress').style.width = '0%';
     
     // Show stop round button since any player can now stop rounds
@@ -765,15 +797,15 @@ function showFinalResults(data) {
     const content = document.getElementById('results-content');
     let html = `
         <div style="text-align: center; margin-bottom: 2rem;">
-            <h2>🎉 Game Over!</h2>
-            <h3>Final Scores</h3>
+            <h2>🎉 ${window.i18n.t('gameOver')}!</h2>
+            <h3>${window.i18n.t('finalScores')}</h3>
         </div>
         <table class="results-table">
             <thead>
                 <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Final Score</th>
+                    <th>${window.i18n.t('rank')}</th>
+                    <th>${window.i18n.t('player')}</th>
+                    <th>${window.i18n.t('finalScore')}</th>
                 </tr>
             </thead>
             <tbody>
@@ -785,7 +817,7 @@ function showFinalResults(data) {
             <tr>
                 <td><strong>${medal} ${index + 1}</strong></td>
                 <td><strong>${player.name}</strong></td>
-                <td><strong>${player.score} pts</strong></td>
+                <td><strong>${player.score} ${window.i18n.t('pts')}</strong></td>
             </tr>
         `;
     });
@@ -794,14 +826,14 @@ function showFinalResults(data) {
             </tbody>
         </table>
         <div style="text-align: center; margin-top: 2rem;">
-            <p>Thanks for playing Stadt Land Fluss!</p>
-            <p id="redirect-countdown" style="color: #666; margin-top: 1rem;">Returning to home page in 5 seconds...</p>
+            <p>${window.i18n.t('thanksForPlaying')}</p>
+            <p id="redirect-countdown" style="color: #666; margin-top: 1rem;">${window.i18n.t('returningToHome', { countdown: 5 })}</p>
         </div>
     `;
     
     content.innerHTML = html;
     showSection('results');
-    headerSubtitle.textContent = 'Game Over';
+    headerSubtitle.textContent = window.i18n.t('gameOver');
     
     // Countdown and redirect to home page
     let countdown = 5;
@@ -810,7 +842,7 @@ function showFinalResults(data) {
     const countdownInterval = setInterval(() => {
         countdown--;
         if (countdownElement) {
-            countdownElement.textContent = `Returning to home page in ${countdown} seconds...`;
+            countdownElement.textContent = window.i18n.t('returningToHome', { countdown });
         }
         
         if (countdown <= 0) {
@@ -834,12 +866,12 @@ socket.on('error', (data) => {
 
 socket.on('disconnect', () => {
     console.log('Disconnected from server');
-    showError('Connection lost. Attempting to reconnect...');
+    showError(window.i18n.t('connectionLost'));
     
     // Show join screen as fallback
     setTimeout(() => {
         if (!socket.connected) {
-            showError('Connection lost. Please rejoin the game.');
+            showError(window.i18n.t('connectionLostRejoin'));
             showSection('join-form');
         }
     }, 5000);
@@ -880,7 +912,7 @@ socket.on('handRaisedNotification', (data) => {
     updateShowHandButton();
     
     if (data.playerName !== playerName) {
-        showError(`${data.playerName} raised their hand!`);
+        showError(window.i18n.t('playerRaisedHand', { playerName: data.playerName }));
         setTimeout(hideError, 3000);
     }
 });
@@ -902,7 +934,7 @@ socket.on('handDenied', () => {
     // Update button visibility immediately after clearing
     validateAndUpdateShowHandButton();
     
-    showError('Your hand was denied by the moderator. Please correct your answers.');
+    showError(window.i18n.t('handWasDenied'));
     setTimeout(hideError, 5000);
 });
 
@@ -911,6 +943,35 @@ socket.on('handProcessed', () => {
     someoneRaisedHand = false;
     validateAndUpdateShowHandButton();
 });
+
+// Function to submit positive feedback for all answers immediately
+async function submitAllPositiveFeedback(resultsData) {
+    console.log('Auto-submitting positive feedback for all answers');
+    
+    const players = Object.keys(resultsData.answers[resultsData.categories[0]] || {});
+    let feedbackCount = 0;
+    
+    // Submit positive feedback for all answers
+    for (const playerName of players) {
+        for (const category of resultsData.categories) {
+            const answerData = resultsData.answers[category][playerName];
+            const answer = answerData?.answer || '';
+            const isValid = answerData?.valid || false;
+            
+            if (answer) {
+                try {
+                    // Submit positive feedback: AI said what it said, user agrees (implicitly)
+                    await submitFeedback(answer, category, resultsData.letter, isValid, isValid);
+                    feedbackCount++;
+                } catch (error) {
+                    console.error('Error submitting auto-positive feedback:', error);
+                }
+            }
+        }
+    }
+    
+    console.log(`Submitted positive feedback for ${feedbackCount} answers`);
+}
 
 // Feedback submission function
 async function submitFeedback(answer, category, letter, aiSaid, userSays) {
@@ -930,21 +991,9 @@ async function submitFeedback(answer, category, letter, aiSaid, userSays) {
         });
         
         if (response.ok) {
-            // Visual feedback - change button color temporarily
-            const buttons = document.querySelectorAll(`button[data-answer="${answer}"][data-category="${category}"]`);
-            buttons.forEach(btn => {
-                if ((userSays && btn.classList.contains('thumbs-up')) || 
-                    (!userSays && btn.classList.contains('thumbs-down'))) {
-                    btn.style.backgroundColor = '#28a745';
-                    btn.style.color = 'white';
-                    setTimeout(() => {
-                        btn.style.backgroundColor = '';
-                        btn.style.color = '';
-                    }, 2000);
-                }
+            console.log('Feedback submitted successfully:', {
+                answer, category, letter, aiSaid, userSays
             });
-            
-            console.log('Feedback submitted successfully');
         } else {
             console.error('Failed to submit feedback');
         }
@@ -952,3 +1001,7 @@ async function submitFeedback(answer, category, letter, aiSaid, userSays) {
         console.error('Error submitting feedback:', error);
     }
 }
+
+document.querySelector('#back-btn').addEventListener('click', () => {
+    window.location.href = '/';
+});

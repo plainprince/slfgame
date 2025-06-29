@@ -7,7 +7,7 @@ if [ -d "temp" ]; then
     cp index.js temp
     cp package.json temp
     cp jsconfig.json temp
-    cp feedback.json temp
+    # cp feedback.json temp # keep feedback.json on the server without overwriting.
 else
     mkdir temp
     cp games.json temp/games.json
@@ -15,7 +15,7 @@ else
     cp index.js temp
     cp package.json temp
     cp jsconfig.json temp
-    cp feedback.json temp
+    # cp feedback.json temp # keep feedback.json on the server without overwriting.
 fi
 
 cd temp
