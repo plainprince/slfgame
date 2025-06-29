@@ -67,7 +67,7 @@
                     </div>
                     
                     <button type="submit" data-i18n="joinGameBtn">Join Game</button>
-                    <button type="button" class="secondary" onclick="location.href='/'" data-i18n="back">Back</button>
+                    <button type="button" class="secondary" id="back-btn" data-i18n="back">Back</button>
                 </form>
             </div>
             
@@ -78,7 +78,7 @@
                     <div class="game-id" id="game-id-display"></div>
                     <p data-i18n="waitingForStart">Waiting for the game creator to start the round...</p>
                     <div class="categories-container" id="game-categories"></div>
-                    <button class="secondary" onclick="leaveGame()" data-i18n="leaveGame">Leave Game</button>
+                    <button class="secondary leave-game-btn" data-i18n="leaveGame">Leave Game</button>
                 </div>
                 
                 <div class="players-section">
@@ -106,7 +106,7 @@
                     <button id="show-hand-btn" type="button" class="primary" style="display: none;">Show Hand ✋</button>
                     <div id="show-hand-feedback" class="show-hand-feedback"></div>
                     <button id="stop-round-btn" type="button" class="secondary" style="display: none;" data-i18n="stopRound">Stop Round</button>
-                    <button type="button" class="secondary" onclick="leaveGame()" data-i18n="leaveGame">Leave Game</button>
+                    <button type="button" class="secondary leave-game-btn" data-i18n="leaveGame">Leave Game</button>
                 </div>
                 
                 <div id="submission-status" style="margin-top: 1rem;">
@@ -124,7 +124,7 @@
                     <!-- Results will be displayed here -->
                 </div>
                 <p style="margin-top: 2rem; color: #666;" id="results-footer" data-i18n="waitingNextRound">Waiting for next round...</p>
-                <button class="secondary" onclick="leaveGame()" data-i18n="leaveGame">Leave Game</button>
+                <button class="secondary leave-game-btn" data-i18n="leaveGame">Leave Game</button>
             </div>
         </div>
     </div>

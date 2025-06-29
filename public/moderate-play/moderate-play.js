@@ -38,6 +38,11 @@ function setupEventListeners() {
         }
     });
 
+    // Back button
+    document.querySelector('.back-btn').addEventListener('click', () => {
+        location.href = '/';
+    });
+
     // Game controls
     document.getElementById('start-game-btn-mod').addEventListener('click', startGameRound);
     document.getElementById('stop-round-btn-mod').addEventListener('click', stopRound);
@@ -70,8 +75,15 @@ function addCategoryTag(category) {
     tag.className = 'category-tag';
     tag.innerHTML = `
         ${category}
-        <span class="remove" onclick="removeCategory('${category}')">&times;</span>
+        <span class="remove" data-category="${category}">&times;</span>
     `;
+    
+    // Add event listener for the remove button
+    const removeBtn = tag.querySelector('.remove');
+    removeBtn.addEventListener('click', () => {
+        removeCategory(category);
+    });
+    
     container.appendChild(tag);
 }
 
@@ -196,8 +208,8 @@ function displayResults(resultsData) {
                     <span class="${cssClass}">${answer || '-'}</span>
                     ${answer ? `
                         <div class="feedback-buttons">
-                            <button class="feedback-btn thumbs-up" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, true)" title="Correct validation">👍</button>
-                            <button class="feedback-btn thumbs-down" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, false)" title="Incorrect validation">👎</button>
+                            <button class="feedback-btn thumbs-up" data-answer="${answer}" data-category="${category}" data-letter="${resultsData.letter}" data-ai-said="${isValid}" data-user-says="true" title="Correct validation">👍</button>
+                            <button class="feedback-btn thumbs-down" data-answer="${answer}" data-category="${category}" data-letter="${resultsData.letter}" data-ai-said="${isValid}" data-user-says="false" title="Incorrect validation">👎</button>
                         </div>
                     ` : ''}
                 </div>
@@ -223,6 +235,18 @@ function displayResults(resultsData) {
     `;
     
     content.innerHTML = html;
+    
+    // Add event listeners for feedback buttons
+    content.querySelectorAll('.feedback-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const answer = button.dataset.answer;
+            const category = button.dataset.category;
+            const letter = button.dataset.letter;
+            const aiSaid = button.dataset.aiSaid === 'true';
+            const userSays = button.dataset.userSays === 'true';
+            submitFeedback(answer, category, letter, aiSaid, userSays);
+        });
+    });
 }
 
 function showFinalResults(data) {
@@ -259,13 +283,21 @@ function showFinalResults(data) {
         </table>
         <div style="text-align: center; margin-top: 2rem;">
             <p>Thanks for playing Stadt Land Fluss!</p>
-            <button onclick="window.location.href='/'" class="btn btn-primary" style="margin-top: 1rem;">
+            <button class="btn btn-primary return-home-btn" style="margin-top: 1rem;">
                 Return to Home
             </button>
         </div>
     `;
     
     content.innerHTML = html;
+    
+    // Add event listener for return home button
+    const returnHomeBtn = content.querySelector('.return-home-btn');
+    if (returnHomeBtn) {
+        returnHomeBtn.addEventListener('click', () => {
+            window.location.href = '/';
+        });
+    }
     
     // Hide next round button
     document.getElementById('next-round-btn').style.display = 'none';
@@ -443,7 +475,7 @@ async function submitFeedback(answer, category, letter, aiSaid, userSays) {
         
         if (response.ok) {
             // Visual feedback - change button color temporarily
-            const buttons = document.querySelectorAll(`button[onclick*="${answer}"][onclick*="${category}"]`);
+            const buttons = document.querySelectorAll(`button[data-answer="${answer}"][data-category="${category}"]`);
             buttons.forEach(btn => {
                 if ((userSays && btn.classList.contains('thumbs-up')) || 
                     (!userSays && btn.classList.contains('thumbs-down'))) {

@@ -43,6 +43,134 @@
     <link rel="apple-touch-icon" href="/icon-192.png">
     
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .privacy-notice {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 14px;
+            line-height: 1.4;
+            z-index: 1000;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .privacy-notice.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+        
+        .privacy-notice-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 8px 0;
+            font-size: 14px;
+        }
+        
+        .privacy-notice-text {
+            color: #666;
+            margin: 0 0 8px 0;
+        }
+        
+        .privacy-notice-link {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        
+        .privacy-notice-link:hover {
+            text-decoration: underline;
+        }
+        
+        .privacy-notice-links {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .privacy-notice-close-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        .privacy-notice-close-link:hover {
+            color: #333;
+            text-decoration: underline;
+        }
+        
+        .privacy-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .privacy-modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .privacy-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 12px;
+        }
+        
+        .privacy-modal h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .privacy-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+        }
+        
+        .privacy-modal-close:hover {
+            color: #333;
+        }
+        
+        .privacy-modal p {
+            margin-bottom: 12px;
+            line-height: 1.5;
+            color: #555;
+        }
+        
+        .privacy-modal ul {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+        
+        .privacy-modal li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -62,7 +190,35 @@
         </div> -->
     </div>
 
+    <!-- Privacy Notice -->
+    <div id="privacyNotice" class="privacy-notice">
+        <h3 class="privacy-notice-title">Technical Storage</h3>
+        <p class="privacy-notice-text">We use local storage for game functionality and language preferences.</p>
+        <div class="privacy-notice-links">
+            <a href="#" class="privacy-notice-link">More info</a>
+            <a href="#" class="privacy-notice-close-link">Close</a>
+        </div>
+    </div>
+
+    <!-- Privacy Modal -->
+    <div id="privacyModal" class="privacy-modal">
+        <div class="privacy-modal-content">
+            <div class="privacy-modal-header">
+                <h2>Data Storage Information</h2>
+                <button class="privacy-modal-close">&times;</button>
+            </div>
+            <p>This game uses minimal technical storage required for functionality:</p>
+            <ul>
+                <li><strong>Language Preference:</strong> Your selected language is stored locally to remember your choice</li>
+                <li><strong>Game Data:</strong> Temporary game state is stored locally during active games and automatically cleared when games end</li>
+                <li><strong>IP Geolocation:</strong> We use your IP address only to detect your country for initial language selection. No location data is stored</li>
+            </ul>
+            <p>We do not use tracking cookies or store any personal information. All data remains on your device and is not shared with third parties.</p>
+        </div>
+    </div>
+
     <script src="i18n.js"></script>
     <script src="main.js"></script>
+    <script src="privacyNotice.js"></script>
 </body>
 </html>

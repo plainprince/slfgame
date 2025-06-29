@@ -72,7 +72,7 @@
                     </div>
                     
                     <button type="submit" data-i18n="createGameBtn">Create Game</button>
-                    <button type="button" class="secondary" onclick="location.href='/'" data-i18n="back">Back</button>
+                    <button type="button" class="secondary" id="back-btn" data-i18n="back">Back</button>
                 </form>
             </div>
             
@@ -132,7 +132,7 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="//cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="/lib/qrcode.js"></script>
     <script src="../i18n.js"></script>
     <script src="create.js"></script>
 </body>

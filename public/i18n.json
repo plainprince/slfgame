@@ -51,7 +51,9 @@
       },
       "scanToJoin": "Scannen zum Beitreten",
       "copyShareLink": "Share-Link kopieren",
-      "copyGameId": "Spiel-ID kopieren"
+      "copyGameId": "Spiel-ID kopieren",
+      "shareLinkCopied": "Share-Link in die Zwischenablage kopiert!",
+      "gameIdCopied": "Spiel-ID in die Zwischenablage kopiert!"
     },
     "en": {
       "title": "City Country River",
@@ -105,7 +107,9 @@
       },
       "scanToJoin": "Scan to join",
       "copyShareLink": "Copy Share Link",
-      "copyGameId": "Copy Game ID"
+      "copyGameId": "Copy Game ID",
+      "shareLinkCopied": "Share link copied to clipboard!",
+      "gameIdCopied": "Game ID copied to clipboard!"
     },
     "es": {
       "title": "Ciudad País Río",
@@ -159,7 +163,9 @@
       },
       "scanToJoin": "Escanear para unirse",
       "copyShareLink": "Copiar enlace de compartir",
-      "copyGameId": "Copiar ID del juego"
+      "copyGameId": "Copiar ID del juego",
+      "shareLinkCopied": "¡Enlace de compartir copiado al portapapeles!",
+      "gameIdCopied": "¡ID del juego copiado al portapapeles!"
     },
     "fr": {
       "title": "Ville Pays Rivière",
@@ -213,7 +219,9 @@
       },
       "scanToJoin": "Scanner pour rejoindre",
       "copyShareLink": "Copier le lien de partage",
-      "copyGameId": "Copier l'ID du jeu"
+      "copyGameId": "Copier l'ID du jeu",
+      "shareLinkCopied": "Lien de partage copié dans le presse-papiers !",
+      "gameIdCopied": "ID du jeu copié dans le presse-papiers !"
     },
     "it": {
       "title": "Città Paese Fiume",
@@ -267,7 +275,9 @@
       },
       "scanToJoin": "Scansiona per unirti",
       "copyShareLink": "Copia link di condivisione",
-      "copyGameId": "Copia ID partita"
+      "copyGameId": "Copia ID partita",
+      "shareLinkCopied": "Link di condivisione copiato negli appunti!",
+      "gameIdCopied": "ID partita copiato negli appunti!"
     },
     "ru": {
       "title": "Город Страна Река",
@@ -321,6 +331,8 @@
       },
       "scanToJoin": "Сканировать для присоединения",
       "copyShareLink": "Копировать ссылку для совместного доступа",
-      "copyGameId": "Копировать ID игры"
+      "copyGameId": "Копировать ID игры",
+      "shareLinkCopied": "Ссылка для совместного доступа скопирована в буфер обмена!",
+      "gameIdCopied": "ID игры скопирован в буфер обмена!"
     }
   } 

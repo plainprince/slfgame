@@ -127,7 +127,12 @@ function setupEventListeners() {
         showHand();
     });
 
-    // Leave game functionality is handled by existing buttons in the UI
+    // Leave game buttons
+    document.querySelectorAll('.leave-game-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            leaveGame();
+        });
+    });
 }
 
 
@@ -567,8 +572,8 @@ function displayResults(resultsData) {
                     <span class="${cssClass}">${answer || '-'}</span>
                     ${answer ? `
                         <div class="feedback-buttons">
-                            <button class="feedback-btn thumbs-up" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, true)" title="Correct validation">👍</button>
-                            <button class="feedback-btn thumbs-down" onclick="submitFeedback('${answer}', '${category}', '${resultsData.letter}', ${isValid}, false)" title="Incorrect validation">👎</button>
+                            <button class="feedback-btn thumbs-up" data-answer="${answer}" data-category="${category}" data-letter="${resultsData.letter}" data-ai-said="${isValid}" data-user-says="true" title="Correct validation">👍</button>
+                            <button class="feedback-btn thumbs-down" data-answer="${answer}" data-category="${category}" data-letter="${resultsData.letter}" data-ai-said="${isValid}" data-user-says="false" title="Incorrect validation">👎</button>
                         </div>
                     ` : ''}
                 </div>
@@ -594,6 +599,18 @@ function displayResults(resultsData) {
     `;
     
     content.innerHTML = html;
+    
+    // Add event listeners for feedback buttons
+    content.querySelectorAll('.feedback-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const answer = button.dataset.answer;
+            const category = button.dataset.category;
+            const letter = button.dataset.letter;
+            const aiSaid = button.dataset.aiSaid === 'true';
+            const userSays = button.dataset.userSays === 'true';
+            submitFeedback(answer, category, letter, aiSaid, userSays);
+        });
+    });
 }
 
 // Socket event listeners
@@ -914,7 +931,7 @@ async function submitFeedback(answer, category, letter, aiSaid, userSays) {
         
         if (response.ok) {
             // Visual feedback - change button color temporarily
-            const buttons = document.querySelectorAll(`button[onclick*="${answer}"][onclick*="${category}"]`);
+            const buttons = document.querySelectorAll(`button[data-answer="${answer}"][data-category="${category}"]`);
             buttons.forEach(btn => {
                 if ((userSays && btn.classList.contains('thumbs-up')) || 
                     (!userSays && btn.classList.contains('thumbs-down'))) {

@@ -71,8 +71,7 @@ function createModal(type, message, options = {}) {
                            outline: none;
                            transition: border-color 0.2s;
                        "
-                       onfocus="this.style.borderColor='#007bff'"
-                       onblur="this.style.borderColor='#e0e0e0'">
+                       class="modal-input">
             `;
         }
 
@@ -81,7 +80,7 @@ function createModal(type, message, options = {}) {
         
         if (type === 'confirm') {
             modalHTML += `
-                <button id="modal-cancel" style="
+                <button id="modal-cancel" class="modal-btn modal-cancel-btn" style="
                     padding: 10px 20px;
                     border: 2px solid #dc3545;
                     background: white;
@@ -91,11 +90,10 @@ function createModal(type, message, options = {}) {
                     font-size: 14px;
                     font-weight: 500;
                     transition: all 0.2s;
-                " onmouseover="this.style.background='#dc3545'; this.style.color='white';"
-                   onmouseout="this.style.background='white'; this.style.color='#dc3545';">
+                ">
                     Cancel
                 </button>
-                <button id="modal-ok" style="
+                <button id="modal-ok" class="modal-btn modal-ok-btn" style="
                     padding: 10px 20px;
                     border: 2px solid #28a745;
                     background: #28a745;
@@ -105,14 +103,13 @@ function createModal(type, message, options = {}) {
                     font-size: 14px;
                     font-weight: 500;
                     transition: all 0.2s;
-                " onmouseover="this.style.background='#218838';"
-                   onmouseout="this.style.background='#28a745';">
+                ">
                     OK
                 </button>
             `;
         } else if (type === 'prompt') {
             modalHTML += `
-                <button id="modal-cancel" style="
+                <button id="modal-cancel" class="modal-btn modal-cancel-btn" style="
                     padding: 10px 20px;
                     border: 2px solid #6c757d;
                     background: white;
@@ -122,11 +119,10 @@ function createModal(type, message, options = {}) {
                     font-size: 14px;
                     font-weight: 500;
                     transition: all 0.2s;
-                " onmouseover="this.style.background='#6c757d'; this.style.color='white';"
-                   onmouseout="this.style.background='white'; this.style.color='#6c757d';">
+                ">
                     Cancel
                 </button>
-                <button id="modal-ok" style="
+                <button id="modal-ok" class="modal-btn modal-ok-btn" style="
                     padding: 10px 20px;
                     border: 2px solid #007bff;
                     background: #007bff;
@@ -136,14 +132,13 @@ function createModal(type, message, options = {}) {
                     font-size: 14px;
                     font-weight: 500;
                     transition: all 0.2s;
-                " onmouseover="this.style.background='#0056b3';"
-                   onmouseout="this.style.background='#007bff';">
+                ">
                     OK
                 </button>
             `;
         } else {
             modalHTML += `
-                <button id="modal-ok" style="
+                <button id="modal-ok" class="modal-btn modal-ok-btn" style="
                     padding: 10px 24px;
                     border: 2px solid #007bff;
                     background: #007bff;
@@ -153,8 +148,7 @@ function createModal(type, message, options = {}) {
                     font-size: 14px;
                     font-weight: 500;
                     transition: all 0.2s;
-                " onmouseover="this.style.background='#0056b3';"
-                   onmouseout="this.style.background='#007bff';">
+                ">
                     OK
                 </button>
             `;
@@ -187,6 +181,14 @@ function createModal(type, message, options = {}) {
                 if (input) {
                     input.focus();
                     input.select();
+                    
+                    // Add focus and blur event listeners
+                    input.addEventListener('focus', () => {
+                        input.style.borderColor = '#007bff';
+                    });
+                    input.addEventListener('blur', () => {
+                        input.style.borderColor = '#e0e0e0';
+                    });
                 }
             }, 100);
         }
@@ -214,12 +216,51 @@ function createModal(type, message, options = {}) {
                     handleClose(true);
                 }
             });
+            
+            // Add hover effects for OK button
+            if (okBtn.classList.contains('modal-ok-btn')) {
+                okBtn.addEventListener('mouseenter', () => {
+                    if (okBtn.style.backgroundColor === 'rgb(40, 167, 69)' || okBtn.style.backgroundColor === '#28a745') { // Green
+                        okBtn.style.backgroundColor = '#218838';
+                    } else if (okBtn.style.backgroundColor === 'rgb(0, 123, 255)' || okBtn.style.backgroundColor === '#007bff') { // Blue
+                        okBtn.style.backgroundColor = '#0056b3';
+                    }
+                });
+                okBtn.addEventListener('mouseleave', () => {
+                    if (okBtn.style.border.includes('#28a745')) { // Green button
+                        okBtn.style.backgroundColor = '#28a745';
+                    } else if (okBtn.style.border.includes('#007bff')) { // Blue button
+                        okBtn.style.backgroundColor = '#007bff';
+                    }
+                });
+            }
         }
 
         if (cancelBtn) {
             cancelBtn.addEventListener('click', () => {
                 handleClose(type === 'prompt' ? null : false);
             });
+            
+            // Add hover effects for Cancel button
+            if (cancelBtn.classList.contains('modal-cancel-btn')) {
+                cancelBtn.addEventListener('mouseenter', () => {
+                    if (cancelBtn.style.border.includes('#dc3545')) { // Red border
+                        cancelBtn.style.backgroundColor = '#dc3545';
+                        cancelBtn.style.color = 'white';
+                    } else if (cancelBtn.style.border.includes('#6c757d')) { // Gray border
+                        cancelBtn.style.backgroundColor = '#6c757d';
+                        cancelBtn.style.color = 'white';
+                    }
+                });
+                cancelBtn.addEventListener('mouseleave', () => {
+                    cancelBtn.style.backgroundColor = 'white';
+                    if (cancelBtn.style.border.includes('#dc3545')) { // Red border
+                        cancelBtn.style.color = '#dc3545';
+                    } else if (cancelBtn.style.border.includes('#6c757d')) { // Gray border
+                        cancelBtn.style.color = '#6c757d';
+                    }
+                });
+            }
         }
 
         // Close on overlay click
@@ -255,13 +296,61 @@ function createModal(type, message, options = {}) {
     });
 }
 
+// Toast notification system for non-intrusive messages
+function showToast(message, type = 'success') {
+    // Remove any existing toast
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    
+    // Icon based on type
+    const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️',
+        warning: '⚠️'
+    };
+    
+    const icon = icons[type] || icons.success;
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <span class="toast-icon">${icon}</span>
+            <span class="toast-message">${message}</span>
+        </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    }, 3000);
+}
+
 // Override default browser dialogs
 window.alert = (message) => createModal('alert', message);
 window.confirm = (message) => createModal('confirm', message);
 window.prompt = (message, defaultValue = '') => createModal('prompt', message, { defaultValue });
 
 // Additional utility functions for different alert types
-window.showSuccess = (message) => createModal('success', message);
+window.showSuccess = (message) => showToast(message, 'success');
 window.showError = (message) => createModal('error', message);
 
 const socket = io();
@@ -326,8 +415,15 @@ function addCategoryTag(category) {
     tag.className = 'category-tag';
     tag.innerHTML = `
         ${category}
-        <span class="remove" onclick="removeCategory('${category}')">&times;</span>
+        <span class="remove" data-category="${category}">&times;</span>
     `;
+    
+    // Add event listener for the remove button
+    const removeBtn = tag.querySelector('.remove');
+    removeBtn.addEventListener('click', () => {
+        removeCategory(category);
+    });
+    
     container.appendChild(tag);
 }
 
@@ -577,7 +673,7 @@ async function copyShareLink() {
     const shareUrl = `${window.location.origin}/join/${gameId}`;
     try {
         await navigator.clipboard.writeText(shareUrl);
-        showSuccess('Share link copied to clipboard!');
+        showSuccess(window.i18n.t('shareLinkCopied'));
     } catch (err) {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
@@ -586,14 +682,14 @@ async function copyShareLink() {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        showSuccess('Share link copied to clipboard!');
+        showSuccess(window.i18n.t('shareLinkCopied'));
     }
 }
 
 async function copyGameId() {
     try {
         await navigator.clipboard.writeText(gameId);
-        showSuccess('Game ID copied to clipboard!');
+        showSuccess(window.i18n.t('gameIdCopied'));
     } catch (err) {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
@@ -602,7 +698,7 @@ async function copyGameId() {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        showSuccess('Game ID copied to clipboard!');
+        showSuccess(window.i18n.t('gameIdCopied'));
     }
 }
 
@@ -875,13 +971,22 @@ function showFinalResults(data) {
         </table>
         <div style="text-align: center; margin-top: 2rem;">
             <p>Thanks for playing Stadt Land Fluss!</p>
-            <button onclick="localStorage.removeItem('${GAME_DATA_KEY}'); window.location.href='/'" class="btn btn-primary" style="margin-top: 1rem;">
+            <button class="btn btn-primary return-home-btn" style="margin-top: 1rem;">
                 Return to Home
             </button>
         </div>
     `;
     
     content.innerHTML = html;
+    
+    // Add event listener for return home button
+    const returnHomeBtn = content.querySelector('.return-home-btn');
+    if (returnHomeBtn) {
+        returnHomeBtn.addEventListener('click', () => {
+            localStorage.removeItem(GAME_DATA_KEY);
+            window.location.href = '/';
+        });
+    }
     
     // Hide next round button and show only home button
     document.getElementById('next-round-btn').style.display = 'none';
@@ -1050,7 +1155,7 @@ function showHandApprovalModal(data) {
                 gap: 12px; 
                 margin-top: 20px;
             ">
-                <button onclick="approveHand(false)" style="
+                <button class="reject-hand-btn" style="
                     padding: 12px 20px;
                     border: 2px solid #dc3545;
                     background: white;
@@ -1061,11 +1166,10 @@ function showHandApprovalModal(data) {
                     font-weight: 500;
                     transition: all 0.2s;
                     width: 100%;
-                " onmouseover="this.style.background='#dc3545'; this.style.color='white';"
-                   onmouseout="this.style.background='white'; this.style.color='#dc3545';">
+                ">
                     ❌ Deny (Invalid Answers)
                 </button>
-                <button onclick="approveHand(true)" style="
+                <button class="approve-hand-btn" style="
                     padding: 12px 20px;
                     border: 2px solid #28a745;
                     background: #28a745;
@@ -1076,8 +1180,7 @@ function showHandApprovalModal(data) {
                     font-weight: 500;
                     transition: all 0.2s;
                     width: 100%;
-                " onmouseover="this.style.background='#218838';"
-                   onmouseout="this.style.background='#28a745';">
+                ">
                     ✅ Approve (End Round)
                 </button>
             </div>
@@ -1086,6 +1189,40 @@ function showHandApprovalModal(data) {
 
     document.body.appendChild(modal);
     handRaisedData = data;
+    
+    // Add event listeners for hand approval buttons
+    const rejectBtn = modal.querySelector('.reject-hand-btn');
+    const approveBtn = modal.querySelector('.approve-hand-btn');
+    
+    if (rejectBtn) {
+        rejectBtn.addEventListener('click', () => {
+            approveHand(false);
+        });
+        
+        // Add hover effects
+        rejectBtn.addEventListener('mouseenter', () => {
+            rejectBtn.style.background = '#dc3545';
+            rejectBtn.style.color = 'white';
+        });
+        rejectBtn.addEventListener('mouseleave', () => {
+            rejectBtn.style.background = 'white';
+            rejectBtn.style.color = '#dc3545';
+        });
+    }
+    
+    if (approveBtn) {
+        approveBtn.addEventListener('click', () => {
+            approveHand(true);
+        });
+        
+        // Add hover effects
+        approveBtn.addEventListener('mouseenter', () => {
+            approveBtn.style.background = '#218838';
+        });
+        approveBtn.addEventListener('mouseleave', () => {
+            approveBtn.style.background = '#28a745';
+        });
+    }
 }
 
 function hideHandApprovalModal() {
@@ -1172,4 +1309,3 @@ socket.on('roundStopLoading', (loading) => {
     roundStopLoading = loading;
     updateStopRoundButton();
 });
-
