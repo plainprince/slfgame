@@ -14,6 +14,6 @@ document.querySelector('#join').addEventListener('click', () => {
     location.href = '/join';
 });
 
-document.querySelector('#moderate-play').addEventListener('click', () => {
+/* document.querySelector('#moderate-play').addEventListener('click', () => {
     location.href = '/moderate-play';
-});
+}); */
