@@ -191,6 +191,7 @@ class I18n {
         const selector = document.createElement('div');
         selector.className = 'language-selector';
         selector.innerHTML = /*html*/ `
+            <label for="languageSelect" class="lang-label">Language:</label>
             <select class="lang-dropdown" id="languageSelect">
                 <option value="de" ${this.currentLanguage === 'de' ? 'selected' : ''}>🇩🇪 Deutsch</option>
                 <option value="en" ${this.currentLanguage === 'en' ? 'selected' : ''}>🇺🇸 English</option>
@@ -209,6 +210,15 @@ class I18n {
                 top: 20px;
                 right: 20px;
                 z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .lang-label {
+                font-size: 14px;
+                color: #333;
+                font-weight: 500;
+                white-space: nowrap;
             }
             .lang-dropdown {
                 padding: 8px 12px;
@@ -228,6 +238,11 @@ class I18n {
             .lang-dropdown:focus {
                 border-color: #007bff;
                 box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+            }
+            @media (max-width: 768px) {
+                .lang-label {
+                    display: none;
+                }
             }
         `;
         document.head.appendChild(style);
