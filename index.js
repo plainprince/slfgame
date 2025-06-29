@@ -36,7 +36,9 @@ async function saveGamesToFile(gamesData) {
                 ...game,
                 // Remove non-serializable properties
                 roundTimer: null,
-                validationCache: undefined
+                validationCache: undefined,
+                // Ensure createdAt is preserved
+                createdAt: game.createdAt || Date.now()
             };
         });
 
@@ -772,19 +774,34 @@ io.on('connection', (socket) => {
     });
 });
 
-// Clean up old games periodically
-setInterval(() => {
+// Function to clean up old games
+function cleanupOldGames() {
     const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+    const maxAge = 2 * 24 * 60 * 60 * 1000; // 2 days
+    let cleanedCount = 0;
 
     Object.keys(games).forEach(gameId => {
         const game = games[gameId];
-        if (now - game.createdAt > maxAge) {
-            console.log(`Cleaning up old game: ${gameId}`);
+        if (game.createdAt && now - game.createdAt > maxAge) {
+            console.log(`Cleaning up old game: ${gameId} (created ${new Date(game.createdAt).toISOString()})`);
             delete games[gameId];
+            cleanedCount++;
         }
     });
-}, 60 * 60 * 1000); // Check every hour
+
+    if (cleanedCount > 0) {
+        console.log(`Cleaned up ${cleanedCount} old games`);
+    }
+}
+
+// Clean up old games at startup
+console.log('Performing initial cleanup of old games...');
+cleanupOldGames();
+
+// Clean up old games periodically every 5 minutes
+setInterval(() => {
+    cleanupOldGames();
+}, 5 * 60 * 1000); // Check every 5 minutes
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
