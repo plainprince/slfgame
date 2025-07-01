@@ -2,21 +2,17 @@
 if [ -d "temp" ]; then
     rm -r temp
     mkdir temp
-    cp games.json temp/games.json
-    cp -R public temp
-    cp index.js temp
-    cp package.json temp
-    cp jsconfig.json temp
-    # cp feedback.json temp # keep feedback.json on the server without overwriting.
 else
     mkdir temp
-    cp games.json temp/games.json
-    cp -R public temp
-    cp index.js temp
-    cp package.json temp
-    cp jsconfig.json temp
-    # cp feedback.json temp # keep feedback.json on the server without overwriting.
 fi
+
+cp games.json temp/games.json
+cp -R public temp
+cp index.js temp
+cp package.json temp
+cp jsconfig.json temp
+cp config.env temp
+# cp feedback.json temp # keep feedback.json on the server without overwriting.
 
 cd temp
 

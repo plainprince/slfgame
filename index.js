@@ -5,6 +5,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { Ollama } from 'ollama'
 import fs from 'fs/promises';
+import dotenv from 'dotenv';
+
+// Load configuration from config.env
+dotenv.config({ path: './config.env' });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,10 +20,22 @@ const io = new Server(server);
 // Middleware
 app.use(express.json());
 
-// Configure Ollama client
-const ollama = new Ollama({
-  host: 'http://localhost:11434'
-});
+// Configuration from environment variables
+const PORT = process.env.PORT || 3000;
+const USE_AI_VALIDATION = process.env.USE_AI_VALIDATION === 'true';
+const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:1b';
+
+// Configure Ollama client (only if AI validation is enabled)
+let ollama = null;
+if (USE_AI_VALIDATION) {
+    ollama = new Ollama({
+        host: OLLAMA_HOST
+    });
+    console.log(`AI validation enabled using model: ${OLLAMA_MODEL} at ${OLLAMA_HOST}`);
+} else {
+    console.log('AI validation disabled');
+}
 
 // File path for storing games data
 const GAMES_FILE_PATH = path.join(__dirname, 'games.json');
@@ -129,26 +145,44 @@ async function isAnswerValid(answer, letter, category) {
         return feedbackData.feedback[answerKey];
     }
 
-    // If no feedback found, use AI validation
-    const response = await ollama.chat({
-        model: 'llama3.2:1b',
-        messages: [
-            { role: 'system', content: 'You are validating answers for Stadt Land Fluss (City Country River). Answer ONLY with "true" or "false" (lowercase, no punctuation). NO OTHER TEXT.\n\nCategory definitions:\n- Stadt/City: Cities, towns, villages worldwide\n- Land/Country: Countries, states, regions worldwide  \n- Fluss/River: Rivers, streams, waterways worldwide\n- Name: First names, given names of people\n- Tier/Animal: Any animals, including mammals, birds, fish, insects, etc.\n\nBe accurate but not overly strict. Accept:\n- Well-known places/animals/names in any language\n- Alternative spellings and names\n- Historical or mythological names if appropriate\n\nReject only clearly wrong categories (e.g. "Berlin" for Animal, "Lion" for City).' },
-            { role: 'user', content: `Is "${answer}" a valid answer for category "${category}"?` }
-        ],
-    })
+    // If AI validation is disabled, accept all answers that start with the correct letter
+    if (!USE_AI_VALIDATION) {
+        console.log('AI validation disabled, accepting answer:', answer);
+        return true;
+    }
 
-    console.log('AI Response:', response.message.content)
-    
-    // Clean and normalize the response
-    const cleanResponse = response.message.content.trim().toLowerCase();
-    console.log('Cleaned Response:', cleanResponse)
-    
-    // Check if the response contains 'true' (more flexible matching)
-    const isValid = cleanResponse.includes('true');
-    console.log('Is Valid:', isValid)
-    
-    return isValid;
+    // If AI validation is enabled but ollama is not available, fall back to accepting answers
+    if (!ollama) {
+        console.log('AI validation enabled but Ollama not available, accepting answer:', answer);
+        return true;
+    }
+
+    // Use AI validation
+    try {
+        const response = await ollama.chat({
+            model: OLLAMA_MODEL,
+            messages: [
+                { role: 'system', content: 'You are validating answers for Stadt Land Fluss (City Country River). Answer ONLY with "true" or "false" (lowercase, no punctuation). NO OTHER TEXT.\n\nCategory definitions:\n- Stadt/City: Cities, towns, villages worldwide\n- Land/Country: Countries, states, regions worldwide  \n- Fluss/River: Rivers, streams, waterways worldwide\n- Name: First names, given names of people\n- Tier/Animal: Any animals, including mammals, birds, fish, insects, etc.\n\nBe accurate but not overly strict. Accept:\n- Well-known places/animals/names in any language\n- Alternative spellings and names\n- Historical or mythological names if appropriate\n\nReject only clearly wrong categories (e.g. "Berlin" for Animal, "Lion" for City).' },
+                { role: 'user', content: `Is "${answer}" a valid answer for category "${category}"?` }
+            ],
+        });
+
+        console.log('AI Response:', response.message.content);
+        
+        // Clean and normalize the response
+        const cleanResponse = response.message.content.trim().toLowerCase();
+        console.log('Cleaned Response:', cleanResponse);
+        
+        // Check if the response contains 'true' (more flexible matching)
+        const isValid = cleanResponse.includes('true');
+        console.log('Is Valid:', isValid);
+        
+        return isValid;
+    } catch (error) {
+        console.error('Error during AI validation:', error);
+        // On error, fall back to accepting the answer
+        return true;
+    }
 }
 
 async function calculateScores(gameId, letter) {
@@ -803,7 +837,6 @@ setInterval(() => {
     cleanupOldGames();
 }, 5 * 60 * 1000); // Check every 5 minutes
 
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
