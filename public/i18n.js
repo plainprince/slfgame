@@ -22,6 +22,11 @@ class I18n {
 
             this.updatePage();
             this.createLanguageSelector();
+            this.createDarkModeToggle();
+            
+            // Apply saved theme immediately
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
         } catch (error) {
             console.error('Failed to load translations:', error);
         }
@@ -191,7 +196,6 @@ class I18n {
         const selector = document.createElement('div');
         selector.className = 'language-selector';
         selector.innerHTML = /*html*/ `
-            <label for="languageSelect" class="lang-label">Language:</label>
             <select class="lang-dropdown" id="languageSelect">
                 <option value="de" ${this.currentLanguage === 'de' ? 'selected' : ''}>🇩🇪 Deutsch</option>
                 <option value="en" ${this.currentLanguage === 'en' ? 'selected' : ''}>🇺🇸 English</option>
@@ -212,13 +216,6 @@ class I18n {
                 z-index: 1000;
                 display: flex;
                 align-items: center;
-                gap: 8px;
-            }
-            .lang-label {
-                font-size: 14px;
-                color: #333;
-                font-weight: 500;
-                white-space: nowrap;
             }
             .lang-dropdown {
                 padding: 8px 12px;
@@ -239,22 +236,245 @@ class I18n {
                 border-color: #007bff;
                 box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
             }
+            
+            /* Dark mode toggle styles */
+            .dark-mode-toggle {
+                position: fixed;
+                top: 20px;
+                right: 170px;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+            }
+            .dark-toggle-btn {
+                padding: 8px 10px;
+                border: 2px solid #ddd;
+                background: white;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: all 0.2s;
+                outline: none;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .dark-toggle-btn:hover {
+                border-color: #007bff;
+                background: #f8f9fa;
+            }
+            .dark-toggle-btn:focus {
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+            }
+            
+            /* Dark mode styles */
+            [data-theme="dark"] {
+                color-scheme: dark;
+            }
+            [data-theme="dark"] body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] .container {
+                background: #2a2a3e;
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] .header {
+                background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+                color: #ffffff;
+            }
+            [data-theme="dark"] .game-info,
+            [data-theme="dark"] .players-section,
+            [data-theme="dark"] .round-info,
+            [data-theme="dark"] .moderator-panel,
+            [data-theme="dark"] .player-panel {
+                background: #353548;
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] .player-item {
+                background: #45455a;
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] input,
+            [data-theme="dark"] textarea {
+                background: #45455a;
+                color: #f5f5f5;
+                border-color: #666;
+            }
+            [data-theme="dark"] input:focus,
+            [data-theme="dark"] textarea:focus {
+                border-color: #667eea;
+                background: #55556a;
+            }
+            [data-theme="dark"] .category-tag {
+                background: #45455a;
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] label {
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] .results-table th {
+                background: #45455a;
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] .results-table {
+                background: #353548;
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] .results-table td {
+                border-bottom-color: #666;
+            }
+
+            [data-theme="dark"] .lang-dropdown,
+            [data-theme="dark"] .dark-toggle-btn {
+                background: #45455a;
+                color: #f5f5f5;
+                border-color: #666;
+            }
+            [data-theme="dark"] .lang-dropdown:hover,
+            [data-theme="dark"] .dark-toggle-btn:hover {
+                border-color: #667eea;
+                background: #55556a;
+            }
+            [data-theme="dark"] .error-message {
+                background: #4a2c2c;
+                color: #ff9999;
+                border-color: #ff6666;
+            }
+            [data-theme="dark"] .info-section {
+                background: #353548;
+                border-left-color: #667eea;
+            }
+            [data-theme="dark"] footer a {
+                color: #9bb3ff;
+            }
+            [data-theme="dark"] footer a:hover {
+                color: #b8ccff;
+            }
+            [data-theme="dark"] .modal-content {
+                background: #2a2a3e;
+                color: #f5f5f5;
+            }
+            [data-theme="dark"] .modal-header {
+                background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            }
+            [data-theme="dark"] .persistent-game-info,
+            [data-theme="dark"] .persistent-game-info-mod {
+                background: rgba(42, 42, 62, 0.95);
+                border-top-color: #667eea;
+            }
+            [data-theme="dark"] .game-id-label,
+            [data-theme="dark"] .game-id-label-mod {
+                color: #d0d0d0;
+            }
+            [data-theme="dark"] .game-id-value,
+            [data-theme="dark"] .game-id-value-mod {
+                color: #9bb3ff;
+            }
+            
+            /* Additional dark mode fixes for better readability */
+            [data-theme="dark"] h1,
+            [data-theme="dark"] h2,
+            [data-theme="dark"] h3 {
+                color: #ffffff !important;
+            }
+            [data-theme="dark"] .subtitle {
+                color: #d0d0d0 !important;
+            }
+            [data-theme="dark"] p {
+                color: #e0e0e0 !important;
+            }
+            [data-theme="dark"] .description {
+                color: #d0d0d0 !important;
+            }
+            [data-theme="dark"] .feature span {
+                color: #e0e0e0 !important;
+            }
+            [data-theme="dark"] .feature {
+                background: #45455a !important;
+                border-left-color: #667eea !important;
+            }
+            [data-theme="dark"] .features {
+                color: #e0e0e0;
+            }
+            [data-theme="dark"] .name-form h2 {
+                color: #ffffff !important;
+            }
+            [data-theme="dark"] .name-form .description {
+                color: #d0d0d0 !important;
+            }
+            [data-theme="dark"] .feature-icon {
+                color: #ffffff !important;
+            }
+            [data-theme="dark"] .feature span:last-child {
+                color: #e0e0e0 !important;
+            }
+            [data-theme="dark"] .icon {
+                color: #ffffff !important;
+            }
+            [data-theme="dark"] footer {
+                color: #d0d0d0 !important;
+            }
+            [data-theme="dark"] .separator {
+                color: #888 !important;
+            }
+            
             @media (max-width: 768px) {
-                .lang-label {
-                    display: none;
+                .dark-mode-toggle {
+                    right: 160px;
                 }
             }
         `;
         document.head.appendChild(style);
 
         // Add event listener
-        const dropdown = selector.querySelector('.lang-dropdown');
+        const dropdown = selector.querySelector('#languageSelect');
         dropdown.addEventListener('change', (e) => {
             const lang = e.target.value;
             this.setLanguage(lang);
         });
 
         document.body.appendChild(selector);
+    }
+
+    createDarkModeToggle() {
+        // Check if already exists
+        if (document.querySelector('.dark-mode-toggle')) {
+            return;
+        }
+
+        const toggle = document.createElement('div');
+        toggle.className = 'dark-mode-toggle';
+        
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        const isDark = currentTheme === 'dark';
+        
+        toggle.innerHTML = `
+            <button class="dark-toggle-btn" id="dark-mode-btn" title="${isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}">
+                ${isDark ? '☀️' : '🌙'}
+            </button>
+        `;
+
+        // Apply current theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+
+        // Add event listener
+        const button = toggle.querySelector('#dark-mode-btn');
+        button.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            button.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            button.title = newTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+        });
+
+        document.body.appendChild(toggle);
     }
 
     getDefaultCategories() {

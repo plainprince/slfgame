@@ -14,6 +14,10 @@ document.querySelector('#join').addEventListener('click', () => {
     location.href = '/join';
 });
 
+document.querySelector('#play-randoms').addEventListener('click', () => {
+    location.href = '/play-randoms';
+});
+
 /* document.querySelector('#moderate-play').addEventListener('click', () => {
     location.href = '/moderate-play';
 }); */

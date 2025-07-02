@@ -41,6 +41,43 @@ if (USE_AI_VALIDATION) {
 const GAMES_FILE_PATH = path.join(__dirname, 'games.json');
 const FEEDBACK_FILE = 'feedback.json';
 
+// Initialize random public rooms (000000-000099)
+function initializeRandomRooms() {
+    for (let i = 0; i <= 99; i++) {
+        const gameId = i.toString().padStart(6, '0');
+        initialGames[gameId] = {
+            id: gameId,
+            categories: ['Stadt', 'Land', 'Fluss', 'Name', 'Tier'], // Default SLFNT categories
+            players: [],
+            currentRound: 0,
+            currentLetter: '',
+            currentRoundAnswers: {},
+            gameState: 'waiting',
+            roundTimer: null,
+            createdAt: Date.now(),
+            creatorId: null, // No specific creator for random rooms
+            playersAtRoundStart: [],
+            handRaised: null,
+            moderatorPlaying: false,
+            isRandomRoom: true, // Mark as random room for special behavior
+            autoStartTimer: null, // Timer for auto-starting next round
+            handRaiseTimeouts: new Map() // Track hand raise timeouts per player
+        };
+    }
+    console.log('Initialized 100 random public rooms (000000-000099)');
+}
+
+// Find the best random room for a player (least full room under 10 players)
+function findBestRandomRoom() {
+    for (let i = 0; i <= 99; i++) {
+        const gameId = i.toString().padStart(6, '0');
+        if (games[gameId] && games[gameId].players.length < 10) {
+            return gameId;
+        }
+    }
+    return null; // All rooms are full
+}
+
 // Function to save games to JSON file
 async function saveGamesToFile(gamesData) {
     try {
@@ -272,6 +309,11 @@ app.get('/moderate-play', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'moderate-play', 'index.html'));
 });
 
+// Add route for play-randoms page
+app.get('/play-randoms', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'play-randoms', 'index.html'));
+});
+
 // Feedback submission endpoint
 app.post('/api/feedback', async (req, res) => {
     try {
@@ -282,20 +324,22 @@ app.post('/api/feedback', async (req, res) => {
         }
         
         // Determine the correct validation based on user feedback
-        // If user thumbs up: use what AI said
-        // If user thumbs down: use opposite of what AI said
-        const isValid = userSays ? aiSaid : !aiSaid;
+        // If user agrees (userSays === aiSaid): keep AI's decision
+        // If user disagrees (userSays !== aiSaid): use opposite of AI's decision
+        const isValid = userSays === aiSaid ? aiSaid : !aiSaid;
         
         // Create simplified key for the answer
         const answerKey = `${answer.trim().toLowerCase()}_${category.trim().toLowerCase()}_${letter.trim().toLowerCase()}`;
         
-        // Store simplified feedback: just the key and whether it's valid
+        // Always update feedback - the client now manages when to send feedback
+        // to prevent unwanted overwrites
         feedbackData.feedback[answerKey] = isValid;
         
         // Save to file
         await saveFeedbackToFile(feedbackData);
         
-        console.log('Feedback saved:', answerKey, '=', isValid);
+        console.log('Feedback saved:', answerKey, '=', isValid, 
+                   `(AI said: ${aiSaid}, User says: ${userSays}, Agreement: ${userSays === aiSaid})`);
         res.json({ success: true });
         
     } catch (error) {
@@ -303,6 +347,9 @@ app.post('/api/feedback', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+// Initialize random rooms
+initializeRandomRooms();
 
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
@@ -414,6 +461,95 @@ io.on('connection', (socket) => {
         console.log(`Game created: ${gameId}`);
     });
 
+    // join random game
+    socket.on('joinRandom', (data) => {
+        const name = data.name;
+
+        // Find the best random room
+        const gameId = findBestRandomRoom();
+        if (!gameId) {
+            socket.emit('error', { error: 'All random rooms are full (max 10 players each)' });
+            return;
+        }
+
+        const game = games[gameId];
+
+        // In random rooms, allow name reuse by removing the old player
+        const existingPlayerIndex = game.players.findIndex(p => p.name === name);
+        const wasExistingPlayer = existingPlayerIndex !== -1;
+        
+        if (wasExistingPlayer) {
+            const oldPlayer = game.players[existingPlayerIndex];
+            console.log(`Player ${name} rejoining random room ${gameId}, removing old instance (score: ${oldPlayer.score})`);
+            
+            // Remove the old player from the game
+            game.players.splice(existingPlayerIndex, 1);
+            
+            // Also remove from current round tracking if they were there
+            if (game.playersAtRoundStart) {
+                const roundStartIndex = game.playersAtRoundStart.indexOf(name);
+                if (roundStartIndex !== -1) {
+                    game.playersAtRoundStart.splice(roundStartIndex, 1);
+                }
+            }
+            
+            // Remove their answers if they had any
+            if (game.currentRoundAnswers && game.currentRoundAnswers[name]) {
+                delete game.currentRoundAnswers[name];
+            }
+            
+            // Reset hand raising if this player had their hand raised
+            if (game.handRaised === name) {
+                game.handRaised = null;
+                console.log(`Reset hand raised status for rejoining player ${name}`);
+            }
+        }
+
+        // Add player to game
+        game.players.push({
+            id: socket.id,
+            name: name,
+            score: 0
+        });
+
+        socket.join(gameId);
+        playerName = name;
+        currentGameId = gameId;
+
+        // If the game is currently playing, add this player to the round tracking
+        // so they don't break the submission counting
+        if (game.gameState === 'playing' && game.playersAtRoundStart) {
+            game.playersAtRoundStart.push(name);
+            // Don't pre-initialize answers - let them submit naturally
+            console.log(`Player ${name} joined mid-round in random room ${gameId}, added to tracking`);
+        }
+
+        // Notify all players in the game
+        io.to(gameId).emit('playerJoined', {
+            playerName: name,
+            players: game.players.map(p => ({ name: p.name, score: p.score })),
+            isRandomRoom: true,
+            gameId: gameId,
+            isRejoin: wasExistingPlayer
+        });
+
+        if (wasExistingPlayer) {
+            console.log(`Player ${name} replaced previous instance in random room ${gameId} (${game.players.length}/10 players)`);
+        } else {
+            console.log(`Player ${name} joined random room ${gameId} (${game.players.length}/10 players)`);
+        }
+
+        // Auto-start the first round when we have at least 2 players and the game hasn't started yet
+        if (game.players.length >= 2 && game.currentRound === 0 && game.gameState === 'waiting') {
+            console.log(`Auto-starting first round in random room ${gameId} with ${game.players.length} players`);
+            setTimeout(() => {
+                if (game.gameState === 'waiting' && game.players.length >= 2) {
+                    startNewRound(gameId);
+                }
+            }, 3000); // 3-second delay to let players get ready
+        }
+    });
+
     // join game
     socket.on('join', (data) => {
         const gameId = data.gameId;
@@ -424,15 +560,17 @@ io.on('connection', (socket) => {
             return;
         }
 
+        const game = games[gameId];
+
         // Check if player already exists
-        const existingPlayer = games[gameId].players.find(p => p.name === name);
+        const existingPlayer = game.players.find(p => p.name === name);
         if (existingPlayer) {
             socket.emit('error', { error: 'Player name already taken' });
             return;
         }
 
         // Add player to game
-        games[gameId].players.push({
+        game.players.push({
             id: socket.id,
             name: name,
             score: 0
@@ -442,10 +580,18 @@ io.on('connection', (socket) => {
         playerName = name;
         currentGameId = gameId;
 
+        // If the game is currently playing, add this player to the round tracking
+        // so they don't break the submission counting
+        if (game.gameState === 'playing' && game.playersAtRoundStart) {
+            game.playersAtRoundStart.push(name);
+            // Don't pre-initialize answers - let them submit naturally
+            console.log(`Player ${name} joined mid-round in game ${gameId}, added to tracking`);
+        }
+
         // Notify all players in the game
         io.to(gameId).emit('playerJoined', {
             playerName: name,
-            players: games[gameId].players.map(p => ({ name: p.name, score: p.score }))
+            players: game.players.map(p => ({ name: p.name, score: p.score }))
         });
 
         console.log(`Player ${name} joined game ${gameId}`);
@@ -466,6 +612,14 @@ io.on('connection', (socket) => {
             return;
         }
 
+        startNewRound(gameId);
+    });
+
+    // Function to start a new round (can be called manually or automatically)
+    function startNewRound(gameId) {
+        const game = games[gameId];
+        if (!game) return;
+
         // Generate random letter (excluding difficult ones)
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !['Q', 'X', 'Y'].includes(l));
         const randomLetter = letters[Math.floor(Math.random() * letters.length)];
@@ -479,21 +633,40 @@ io.on('connection', (socket) => {
         // Capture players who are present at round start - this fixes the counting issue
         game.playersAtRoundStart = game.players.map(p => p.name);
 
-        // Clear any existing timer
+        // Clear any existing timers
         if (game.roundTimer) {
             clearTimeout(game.roundTimer);
             game.roundTimer = null;
+        }
+        if (game.autoStartTimer) {
+            clearTimeout(game.autoStartTimer);
+            game.autoStartTimer = null;
+        }
+
+        // Clear hand raise timeouts
+        if (game.handRaiseTimeouts) {
+            game.handRaiseTimeouts.forEach(timeout => clearTimeout(timeout));
+            game.handRaiseTimeouts.clear();
         }
 
         io.to(gameId).emit('roundStarted', {
             round: game.currentRound,
             letter: randomLetter,
             categories: game.categories,
-            gameId: gameId // Include gameId for display during game
+            gameId: gameId, // Include gameId for display during game
+            isRandomRoom: game.isRandomRoom
         });
 
+        // For random rooms, start the 3-second timeout for hand raising
+        if (game.isRandomRoom) {
+            setTimeout(() => {
+                // Enable hand raising after 3 seconds
+                io.to(gameId).emit('handRaisingEnabled');
+            }, 3000);
+        }
+
         console.log(`Round ${game.currentRound} started in game ${gameId} with letter ${randomLetter}`);
-    });
+    }
 
     // submit answers
     socket.on('submitAnswers', (data) => {
@@ -544,6 +717,18 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // For random rooms, check if 3 seconds have passed since round start
+        if (game.isRandomRoom) {
+            const now = Date.now();
+            const roundStartTime = now - (3000); // Assume round started 3+ seconds ago if we get here
+            
+            // Check if this player already has a timeout active
+            if (game.handRaiseTimeouts && game.handRaiseTimeouts.has(playerName)) {
+                socket.emit('error', { error: 'Please wait before showing hand again' });
+                return;
+            }
+        }
+
         // Check if someone already has their hand raised
         if (game.handRaised && game.handRaised !== playerName) {
             socket.emit('error', { error: 'Someone else already has their hand raised' });
@@ -578,18 +763,46 @@ io.on('connection', (socket) => {
         game.currentRoundAnswers[playerName] = answers;
         game.handRaised = playerName;
 
-        // Notify moderator about hand raised
-        io.to(game.creatorId).emit('handRaised', {
-            playerName: playerName,
-            answers: answers
-        });
+        // For random rooms, auto-approve the hand and trigger round ending
+        if (game.isRandomRoom) {
+            // Set 3-second timeout for this player
+            if (!game.handRaiseTimeouts) {
+                game.handRaiseTimeouts = new Map();
+            }
+            const timeout = setTimeout(() => {
+                game.handRaiseTimeouts.delete(playerName);
+            }, 3000);
+            game.handRaiseTimeouts.set(playerName, timeout);
 
-        // Notify all players that someone raised their hand
-        io.to(gameId).emit('handRaisedNotification', {
-            playerName: playerName
-        });
+            console.log(`Player ${playerName} raised hand in random room ${gameId} - auto-approving`);
+            
+            // Notify all players that someone raised their hand and round is ending
+            io.to(gameId).emit('handRaisedNotification', {
+                playerName: playerName,
+                autoApproved: true
+            });
 
-        console.log(`Player ${playerName} raised hand in game ${gameId}`);
+            // Trigger roundStopping to allow auto-submissions, then end round
+            io.to(gameId).emit('roundStopping');
+            
+            // Wait for auto-submissions, then end the round
+            setTimeout(() => {
+                endRound(gameId);
+            }, 500);
+        } else {
+            // Regular rooms - notify moderator for approval
+            io.to(game.creatorId).emit('handRaised', {
+                playerName: playerName,
+                answers: answers
+            });
+
+            // Notify all players that someone raised their hand
+            io.to(gameId).emit('handRaisedNotification', {
+                playerName: playerName
+            });
+
+            console.log(`Player ${playerName} raised hand in game ${gameId}`);
+        }
     });
 
     // Moderator approves/denies hand
@@ -781,6 +994,22 @@ io.on('connection', (socket) => {
 
         // Reset for next round
         game.gameState = 'waiting';
+        
+        // For random rooms, auto-start the next round after 10 seconds
+        if (game.isRandomRoom && game.players.length > 0) {
+            // Clear any existing auto-start timer first
+            if (game.autoStartTimer) {
+                clearTimeout(game.autoStartTimer);
+            }
+            
+            game.autoStartTimer = setTimeout(() => {
+                if (game.gameState === 'waiting' && game.players.length > 0) {
+                    console.log(`Auto-starting next round in random room ${gameId}`);
+                    startNewRound(gameId);
+                }
+            }, 10000); // 10 seconds delay
+        }
+        
         console.log(`Round ${game.currentRound} ended in game ${gameId}`);
     }
 
@@ -798,6 +1027,7 @@ io.on('connection', (socket) => {
             categories: game.categories,
             players: game.players.map(p => ({ name: p.name, score: p.score })),
             currentRound: game.currentRound,
+            currentLetter: game.currentLetter,
             gameState: game.gameState
         });
     });
@@ -816,6 +1046,10 @@ function cleanupOldGames() {
 
     Object.keys(games).forEach(gameId => {
         const game = games[gameId];
+        // Don't clean up random rooms (000000-000099)
+        if (game.isRandomRoom) {
+            return;
+        }
         if (game.createdAt && now - game.createdAt > maxAge) {
             console.log(`Cleaning up old game: ${gameId} (created ${new Date(game.createdAt).toISOString()})`);
             delete games[gameId];

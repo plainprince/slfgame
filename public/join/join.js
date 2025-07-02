@@ -13,6 +13,12 @@ let hasSubmitted = false; // Track if player has submitted this round
 let handRaised = false; // Track if this player has raised their hand
 let someoneRaisedHand = false; // Track if anyone has raised their hand
 
+// Track feedback state for each answer
+const feedbackState = new Map(); // Map of answerKey -> { submitted: boolean, isPositive: boolean }
+
+function getAnswerKey(answer, category, letter) {
+    return `${answer}_${category}_${letter}`;
+}
 
 // DOM elements
 const joinForm = document.getElementById('join-form');
@@ -138,8 +144,6 @@ function setupEventListeners() {
     });
 }
 
-
-
 function extractGameIdFromUrl(url) {
     try {
         const urlObj = new URL(url);
@@ -164,6 +168,16 @@ function checkURLParameters() {
     const pathParts = window.location.pathname.split('/');
     const nameFromUrl = urlParams.get('name');
     const autoJoin = urlParams.get('auto');
+    const random = urlParams.get('random');
+    
+    // Check for random room joining
+    if (random === 'true' && nameFromUrl) {
+        document.getElementById('player-name').value = decodeURIComponent(nameFromUrl);
+        setTimeout(() => {
+            joinRandomGame();
+        }, 1000);
+        return;
+    }
     
     // Check if we're on a share link (/join/123456)
     if (pathParts[1] === 'join' && pathParts[2]) {
@@ -190,8 +204,9 @@ function checkURLParameters() {
     }
 }
 
-function leaveGame() {
-    if (confirm(window.i18n.t('confirmLeaveGame') || 'Are you sure you want to leave the game?')) {
+async function leaveGame() {
+    const confirmed = await createModal('confirm', window.i18n.t('confirmLeaveGame') || 'Are you sure you want to leave the game?');
+    if (confirmed) {
         clearGameData();
         socket.disconnect();
         window.location.href = '/';
@@ -212,6 +227,19 @@ function joinGame() {
     
     hideError();
     socket.emit('join', { gameId, name: playerName });
+}
+
+function joinRandomGame() {
+    const playerNameInput = document.getElementById('player-name');
+    playerName = playerNameInput.value.trim();
+    
+    if (!playerName) {
+        showError('Please enter your name');
+        return;
+    }
+    
+    hideError();
+    socket.emit('joinRandom', { name: playerName });
 }
 
 function submitAnswers() {
@@ -402,6 +430,73 @@ function updateDynamicTexts() {
     }
 }
 
+function showLoadingScreen(message) {
+    // Remove any existing loading screen
+    hideLoadingScreen();
+    
+    // Create loading overlay
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loading-overlay';
+    loadingOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: white;
+    `;
+    
+    // Create spinner
+    const spinner = document.createElement('div');
+    spinner.style.cssText = `
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    `;
+    
+    // Create message
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        font-size: 18px;
+        text-align: center;
+        max-width: 300px;
+        line-height: 1.4;
+    `;
+    
+    // Add spinner animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    loadingOverlay.appendChild(spinner);
+    loadingOverlay.appendChild(messageDiv);
+    document.body.appendChild(loadingOverlay);
+}
+
+function hideLoadingScreen() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.remove();
+    }
+}
+
 function createAnswersForm() {
     const form = document.getElementById('answers-form');
     form.innerHTML = '';
@@ -413,8 +508,14 @@ function createAnswersForm() {
         div.className = 'answer-group';
         div.innerHTML = `
             <label for="answer-${category}">${category}:</label>
-            <input type="text" id="answer-${category}" data-category="${category}" 
-                   placeholder="${window.i18n.t('enterWith')} ${category.toLowerCase()} ${window.i18n.t('startingWith')} ${currentLetter}">
+            <div class="answer-input-container">
+                <input type="text" id="answer-${category}" data-category="${category}" 
+                       placeholder="${window.i18n.t('enterWith')} ${category.toLowerCase()} ${window.i18n.t('startingWith')} ${currentLetter}">
+                <button type="button" class="clear-answer-btn" data-category="${category}" 
+                        title="${window.i18n.t('clearAnswerTooltip')}" aria-label="${window.i18n.t('clearAnswer')}">
+                    ✕
+                </button>
+            </div>
         `;
         form.appendChild(div);
     });
@@ -442,6 +543,20 @@ function createAnswersForm() {
         });
         input.addEventListener('blur', () => {
             validateAndUpdateShowHandButton();
+        });
+    });
+
+    // Add clear answer button functionality
+    const clearButtons = form.querySelectorAll('.clear-answer-btn');
+    clearButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const category = button.dataset.category;
+            const input = document.getElementById(`answer-${category}`);
+            if (input) {
+                input.value = '';
+                input.focus();
+                validateAndUpdateShowHandButton();
+            }
         });
     });
 
@@ -551,25 +666,29 @@ function startTimer() {
 function displayResults(resultsData) {
     const content = document.getElementById('results-content');
     
-    // Create results table
     let html = `
-        <div style="margin-bottom: 2rem;">
-            <h3>${window.i18n.t('round')} ${resultsData.round} - ${window.i18n.t('letter')} "${resultsData.letter}"</h3>
-        </div>
-        <table class="results-table">
+        <h2>${window.i18n.t('resultsRound')} ${resultsData.currentRound}</h2>
+        <p><strong>${window.i18n.t('letter')}:</strong> ${resultsData.letter}</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 2rem;">
             <thead>
-                <tr>
-                    <th>${window.i18n.t('player')}</th>
+                <tr style="background-color: #f8f9fa;">
+                    <th style="border: 1px solid #ddd; padding: 0.75rem; text-align: left;">${window.i18n.t('player')}</th>
     `;
     
-    // Add category headers
     resultsData.categories.forEach(category => {
-        html += `<th>${category}</th>`;
+        html += `<th style="border: 1px solid #ddd; padding: 0.75rem; text-align: left;">${category}</th>`;
     });
-    html += `<th>${window.i18n.t('roundScore')}</th><th>${window.i18n.t('totalScore')}</th></tr></thead><tbody>`;
     
-    // Add player rows
+    html += `
+                    <th style="border: 1px solid #ddd; padding: 0.75rem; text-align: left;">${window.i18n.t('roundScore')}</th>
+                    <th style="border: 1px solid #ddd; padding: 0.75rem; text-align: left;">${window.i18n.t('totalScore')}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
     const players = Object.keys(resultsData.answers[resultsData.categories[0]] || {});
+    
     players.forEach(playerName => {
         html += `<tr><td><strong>${playerName}</strong></td>`;
         
@@ -620,27 +739,76 @@ function displayResults(resultsData) {
     
     content.innerHTML = html;
     
-    // Immediately submit positive feedback for all answers (will be overwritten by negative feedback if needed)
-    submitAllPositiveFeedback(resultsData);
+    // DON'T submit automatic positive feedback anymore to avoid overwriting
+    // Only submit feedback when user explicitly clicks buttons
     
     // Add event listeners for thumbs down buttons
     content.querySelectorAll('.thumbs-down').forEach(button => {
-        button.addEventListener('click', () => {
+        const answerKey = getAnswerKey(button.dataset.answer, button.dataset.category, button.dataset.letter);
+        const currentState = feedbackState.get(answerKey);
+        
+        // Set initial visual state based on current feedback state
+        if (currentState && currentState.submitted) {
+            if (!currentState.isPositive) {
+                // Negative feedback was submitted
+                button.style.backgroundColor = '#dc3545';
+                button.style.color = 'white';
+                button.style.opacity = '0.7';
+                button.style.filter = 'grayscale(50%)';
+                button.title = window.i18n.t('feedbackSubmitted') + ' - Click to undo';
+            }
+        }
+        
+        button.addEventListener('click', async () => {
             const answer = button.dataset.answer;
             const category = button.dataset.category;
             const letter = button.dataset.letter;
             const aiSaid = button.dataset.aiSaid === 'true';
             const userSays = button.dataset.userSays === 'true';
             
-            // Submit negative feedback (overwriting the positive feedback)
-            submitFeedback(answer, category, letter, aiSaid, userSays);
+            const answerKey = getAnswerKey(answer, category, letter);
+            const currentState = feedbackState.get(answerKey) || { submitted: false, isPositive: false };
             
-            // Disable the button after clicking
-            button.disabled = true;
-            button.textContent = '✅';
-            button.style.backgroundColor = '#28a745';
-            button.style.color = 'white';
-            button.title = window.i18n.t('feedbackSubmitted');
+            // Check if button is already in submitted negative state
+            if (currentState.submitted && !currentState.isPositive) {
+                // Ask for confirmation to undo negative feedback
+                const confirmed = await createModal('confirm', window.i18n.t('confirmUndoNegativeFeedback'));
+                if (!confirmed) {
+                    return;
+                }
+                
+                // Restore button to original state
+                button.style.backgroundColor = '';
+                button.style.color = '';
+                button.style.opacity = '1';
+                button.style.filter = '';
+                button.title = 'AI got this wrong';
+                
+                // Submit positive feedback to undo the negative (AI was right)
+                await submitFeedback(answer, category, letter, aiSaid, true);
+                
+                // Update feedback state
+                feedbackState.set(answerKey, { submitted: true, isPositive: true });
+            } else {
+                // First time submitting negative feedback, ask for confirmation
+                const confirmed = await createModal('confirm', window.i18n.t('confirmNegativeFeedback'));
+                if (!confirmed) {
+                    return;
+                }
+                
+                // Submit negative feedback (AI was wrong)
+                await submitFeedback(answer, category, letter, aiSaid, userSays);
+                
+                // Set button to submitted state with red/grayed appearance
+                button.style.backgroundColor = '#dc3545';
+                button.style.color = 'white';
+                button.style.opacity = '0.7';
+                button.style.filter = 'grayscale(50%)';
+                button.title = window.i18n.t('feedbackSubmitted') + ' - Click to undo';
+                
+                // Update feedback state
+                feedbackState.set(answerKey, { submitted: true, isPositive: false });
+            }
         });
     });
 }
@@ -648,6 +816,11 @@ function displayResults(resultsData) {
 // Socket event listeners
 socket.on('playerJoined', (data) => {
     // This means we successfully joined
+    // For random rooms, gameId will be set by the server response
+    if (data.isRandomRoom) {
+        gameId = data.gameId || gameId; // Set gameId from server if available
+    }
+    
     document.getElementById('game-id-display').textContent = gameId;
     
     // Save game data to localStorage
@@ -659,6 +832,16 @@ socket.on('playerJoined', (data) => {
     updatePlayersList(data.players);
     showSection('waiting-room');
     hideError();
+    
+    // Show info for random rooms
+    if (data.isRandomRoom) {
+        const subtitle = document.getElementById('header-subtitle');
+        if (subtitle) {
+            subtitle.textContent = `Playing with randoms in room ${gameId}`;
+        }
+        
+        // Silent name takeover in random rooms - no notification needed
+    }
 });
 
 socket.on('gameState', (data) => {
@@ -671,13 +854,15 @@ socket.on('gameState', (data) => {
     
     // Show categories
     const gameCategories = document.getElementById('game-categories');
-    gameCategories.innerHTML = '';
-    categories.forEach(category => {
-        const tag = document.createElement('div');
-        tag.className = 'category-tag';
-        tag.textContent = category;
-        gameCategories.appendChild(tag);
-    });
+    if (gameCategories) {
+        gameCategories.innerHTML = '';
+        categories.forEach(category => {
+            const tag = document.createElement('div');
+            tag.className = 'category-tag';
+            tag.textContent = category;
+            gameCategories.appendChild(tag);
+        });
+    }
     
     updatePlayersList(data.players);
     
@@ -686,8 +871,19 @@ socket.on('gameState', (data) => {
         // Game is in progress, show game play
         document.getElementById('current-round').textContent = currentRound;
         document.getElementById('current-letter').textContent = currentLetter;
+        
+        // Update game ID display during game
+        const gameIdDisplay = document.getElementById('game-id-display');
+        if (gameIdDisplay) {
+            gameIdDisplay.textContent = gameId;
+        }
+        
         createAnswersForm();
         showSection('game-play');
+        
+        // Show message for mid-round join
+        showError(window.i18n.t('joinedMidRound', { round: currentRound, letter: currentLetter }));
+        setTimeout(hideError, 7000);
     } else {
         showSection('waiting-room');
     }
@@ -731,10 +927,24 @@ socket.on('roundStarted', (data) => {
     document.getElementById('submission-text').textContent = window.i18n.t('fillAnswers');
     document.getElementById('submission-progress').style.width = '0%';
     
-    // Show stop round button since any player can now stop rounds
+    // Players should NOT have stop round button - only moderators/creators
     const stopRoundBtn = document.getElementById('stop-round-btn');
     if (stopRoundBtn) {
-        stopRoundBtn.style.display = 'inline-block';
+        stopRoundBtn.style.display = 'none';
+    }
+    
+    // For random rooms, disable show hand button initially (3 second delay)
+    if (data.isRandomRoom) {
+        const showHandBtn = document.getElementById('show-hand-btn');
+        if (showHandBtn) {
+            showHandBtn.disabled = true;
+            showHandBtn.textContent = 'Hand raising disabled (3s)';
+        }
+        const feedbackDiv = document.getElementById('show-hand-feedback');
+        if (feedbackDiv) {
+            feedbackDiv.textContent = 'Hand raising will be enabled in 3 seconds...';
+            feedbackDiv.className = 'show-hand-feedback warning';
+        }
     }
     
     // Start timer (no time limit now)
@@ -751,6 +961,9 @@ socket.on('playerSubmitted', (data) => {
 });
 
 socket.on('roundStopping', () => {
+    // Show loading screen
+    showLoadingScreen(window.i18n.t('roundEndingCalculating'));
+    
     // Round is being stopped early, auto-submit current answers
     if (!hasSubmitted) {
         console.log('Round being stopped early, auto-submitting current answers...');
@@ -759,13 +972,16 @@ socket.on('roundStopping', () => {
 });
 
 socket.on('roundEnded', (data) => {
+    // Hide loading screen
+    hideLoadingScreen();
+    
     // Clear timer
     if (roundTimer) {
         clearInterval(roundTimer);
         roundTimer = null;
     }
     
-    // Hide stop round button when round ends
+    // Hide stop round button when round ends (should already be hidden for players)
     const stopRoundBtn = document.getElementById('stop-round-btn');
     if (stopRoundBtn) {
         stopRoundBtn.style.display = 'none';
@@ -902,6 +1118,241 @@ if (window.location.pathname === '/' || window.location.href.includes('index.htm
     clearGameData();
 }
 
+// Custom modal system
+function createModal(type, message, options = {}) {
+    return new Promise((resolve) => {
+        // Remove any existing modal
+        const existingModal = document.querySelector('.custom-modal-overlay');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-modal-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+        `;
+
+        // Create modal content
+        const modal = document.createElement('div');
+        modal.className = 'custom-modal';
+        modal.style.cssText = `
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 90vw;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0 10px;
+            box-sizing: border-box;
+        `;
+
+        // Icon based on type
+        const icons = {
+            alert: '⚠️',
+            confirm: '❓',
+            prompt: '✏️',
+            success: '✅',
+            error: '❌'
+        };
+
+        const icon = icons[type] || icons.alert;
+
+        let modalHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">${icon}</div>
+                <div style="font-size: 16px; color: #333; line-height: 1.4;">${message}</div>
+            </div>
+        `;
+
+        // Buttons - use CSS media query approach
+        const isSmallScreen = window.innerWidth < 350;
+        const buttonContainerStyle = isSmallScreen ? 
+            'display: flex; flex-direction: column; gap: 8px; align-items: stretch; width: 100%; box-sizing: border-box;' :
+            'display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%; box-sizing: border-box;';
+        
+        modalHTML += `<div style="${buttonContainerStyle}">`;
+        
+        if (type === 'confirm') {
+            const buttonStyle = isSmallScreen ? `
+                padding: 12px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s;
+                width: 100%;
+                box-sizing: border-box;
+                margin: 0;
+            ` : `
+                padding: 10px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s;
+                min-width: 80px;
+                flex: 1;
+                max-width: 120px;
+            `;
+            
+            modalHTML += `
+                <button id="modal-cancel" class="modal-btn modal-cancel-btn" style="
+                    border: 2px solid #dc3545;
+                    background: white;
+                    color: #dc3545;
+                    ${buttonStyle}
+                ">
+                    Cancel
+                </button>
+                <button id="modal-ok" class="modal-btn modal-ok-btn" style="
+                    border: 2px solid #28a745;
+                    background: #28a745;
+                    color: white;
+                    ${buttonStyle}
+                ">
+                    OK
+                </button>
+            `;
+        } else {
+            modalHTML += `
+                <button id="modal-ok" class="modal-btn modal-ok-btn" style="
+                    padding: 12px 24px;
+                    border: 2px solid #007bff;
+                    background: #007bff;
+                    color: white;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: all 0.2s;
+                    min-width: 120px;
+                    ${isSmallScreen ? 'width: 100%; box-sizing: border-box;' : 'max-width: 200px;'}
+                ">
+                    OK
+                </button>
+            `;
+        }
+
+        modalHTML += '</div>';
+        modal.innerHTML = modalHTML;
+        overlay.appendChild(modal);
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                from { transform: scale(0.8) translateY(-20px); opacity: 0; }
+                to { transform: scale(1) translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.body.appendChild(overlay);
+
+        // Event listeners
+        const handleClose = (result) => {
+            overlay.style.animation = 'fadeIn 0.2s ease-out reverse';
+            modal.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => {
+                overlay.remove();
+                style.remove();
+                resolve(result);
+            }, 200);
+        };
+
+        const okBtn = document.getElementById('modal-ok');
+        const cancelBtn = document.getElementById('modal-cancel');
+
+        if (okBtn) {
+            okBtn.addEventListener('click', () => {
+                handleClose(true);
+            });
+            
+            // Add hover effects for OK button
+            okBtn.addEventListener('mouseenter', () => {
+                if (okBtn.style.backgroundColor === '#28a745') {
+                    okBtn.style.backgroundColor = '#218838';
+                } else if (okBtn.style.backgroundColor === '#007bff') {
+                    okBtn.style.backgroundColor = '#0056b3';
+                }
+            });
+            okBtn.addEventListener('mouseleave', () => {
+                if (okBtn.style.border.includes('#28a745')) {
+                    okBtn.style.backgroundColor = '#28a745';
+                } else if (okBtn.style.border.includes('#007bff')) {
+                    okBtn.style.backgroundColor = '#007bff';
+                }
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                handleClose(false);
+            });
+            
+            // Add hover effects for Cancel button
+            cancelBtn.addEventListener('mouseenter', () => {
+                if (cancelBtn.style.border.includes('#dc3545')) {
+                    cancelBtn.style.backgroundColor = '#dc3545';
+                    cancelBtn.style.color = 'white';
+                }
+            });
+            cancelBtn.addEventListener('mouseleave', () => {
+                cancelBtn.style.backgroundColor = 'white';
+                if (cancelBtn.style.border.includes('#dc3545')) {
+                    cancelBtn.style.color = '#dc3545';
+                }
+            });
+        }
+
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                handleClose(type === 'confirm' ? false : true);
+            }
+        });
+
+        // Handle Enter and Escape keys
+        const handleKeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleClose(true);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                handleClose(type === 'confirm' ? false : true);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeydown);
+        
+        // Clean up event listener when modal closes
+        const originalResolve = resolve;
+        resolve = (result) => {
+            document.removeEventListener('keydown', handleKeydown);
+            originalResolve(result);
+        };
+    });
+}
+
 // New socket event handlers for hand functionality
 socket.on('handRaised', (data) => {
     // This is sent to the moderator only - players get handRaisedNotification
@@ -944,36 +1395,31 @@ socket.on('handProcessed', () => {
     validateAndUpdateShowHandButton();
 });
 
-// Function to submit positive feedback for all answers immediately
-async function submitAllPositiveFeedback(resultsData) {
-    console.log('Auto-submitting positive feedback for all answers');
-    
-    const players = Object.keys(resultsData.answers[resultsData.categories[0]] || {});
-    let feedbackCount = 0;
-    
-    // Submit positive feedback for all answers
-    for (const playerName of players) {
-        for (const category of resultsData.categories) {
-            const answerData = resultsData.answers[category][playerName];
-            const answer = answerData?.answer || '';
-            const isValid = answerData?.valid || false;
-            
-            if (answer) {
-                try {
-                    // Submit positive feedback: AI said what it said, user agrees (implicitly)
-                    await submitFeedback(answer, category, resultsData.letter, isValid, isValid);
-                    feedbackCount++;
-                } catch (error) {
-                    console.error('Error submitting auto-positive feedback:', error);
-                }
-            }
-        }
+socket.on('handRaisingEnabled', () => {
+    // Enable hand raising after 3 seconds in random rooms
+    const showHandBtn = document.getElementById('show-hand-btn');
+    if (showHandBtn) {
+        showHandBtn.disabled = false;
     }
-    
-    console.log(`Submitted positive feedback for ${feedbackCount} answers`);
-}
+    validateAndUpdateShowHandButton();
+});
 
-// Feedback submission function
+socket.on('handRaisedNotification', (data) => {
+    if (data.autoApproved) {
+        // In random rooms, show loading screen and notification that round is ending
+        showLoadingScreen(window.i18n.t('playerRaisedHandEnding', { playerName: data.playerName }));
+        const feedbackDiv = document.getElementById('show-hand-feedback');
+        if (feedbackDiv) {
+            feedbackDiv.textContent = `${data.playerName} raised hand - round ending!`;
+            feedbackDiv.className = 'show-hand-feedback warning';
+        }
+    } else {
+        someoneRaisedHand = true;
+        updateShowHandButton();
+    }
+});
+
+// Enhanced feedback submission function with state tracking
 async function submitFeedback(answer, category, letter, aiSaid, userSays) {
     try {
         const response = await fetch('/api/feedback', {
@@ -993,6 +1439,12 @@ async function submitFeedback(answer, category, letter, aiSaid, userSays) {
         if (response.ok) {
             console.log('Feedback submitted successfully:', {
                 answer, category, letter, aiSaid, userSays
+            });
+            
+            const answerKey = getAnswerKey(answer, category, letter);
+            feedbackState.set(answerKey, { 
+                submitted: true, 
+                isPositive: userSays === aiSaid // Positive if user agrees with AI
             });
         } else {
             console.error('Failed to submit feedback');

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title data-i18n="title">Play with Randoms - Stadt Land Fluss Online | Random Multiplayer</title>
+    <meta name="description" content="Play Stadt Land Fluss with random players online! Join a public room and play the classic German word game with people from around the world.">
+    <meta name="keywords" content="play with randoms Stadt Land Fluss, random players, public rooms, multiplayer word game, online scattergories">
+    <meta name="author" content="Stadt Land Fluss Game">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://slfgame.com/play-randoms/">
+    <meta property="og:title" content="Play Stadt Land Fluss with Random Players">
+    <meta property="og:description" content="Join public rooms and play Stadt Land Fluss with random players from around the world! No game ID needed.">
+    <meta property="og:site_name" content="Stadt Land Fluss Online">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="https://slfgame.com/play-randoms/">
+    <meta property="twitter:title" content="Play with Random Players">
+    <meta property="twitter:description" content="Join public rooms and play Stadt Land Fluss with random players from around the world! No game ID needed.">
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="application-name" content="Stadt Land Fluss Online">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <link rel="stylesheet" href="play-randoms.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="title">Stadt Land Fluss</h1>
+            <p id="header-subtitle" data-i18n="playWithRandomsTitle">Play with Random Players</p>
+        </div>
+        
+        <div class="content">
+            <!-- Name Entry Form -->
+            <div id="name-form" class="name-form">
+                <div class="icon">🎲</div>
+                <h2 data-i18n="playWithRandoms">Play with Randoms</h2>
+                <p class="description" data-i18n="playRandomsDescription">
+                    Join a public room and play with random players from around the world! 
+                    Games start automatically with 2+ players.
+                </p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature-icon">⚡</span>
+                        <span data-i18n="autoStart">Auto-start with 2+ players</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🏃</span>
+                        <span data-i18n="quickRounds">Quick rounds (show hand = instant stop)</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🌍</span>
+                        <span data-i18n="globalPlayers">Play with people worldwide</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🎯</span>
+                        <span data-i18n="defaultCategories">Standard categories (SLFNT)</span>
+                    </div>
+                </div>
+                
+                <div id="error-message" class="error-message hidden"></div>
+                
+                <form id="playRandomsForm">
+                    <div class="form-group">
+                        <label for="player-name" data-i18n="yourName">Your Name</label>
+                        <input type="text" id="player-name" data-i18n-placeholder="enterName" placeholder="Enter your name" required>
+                    </div>
+                    
+                    <button type="submit" class="play-btn" data-i18n="startPlaying">Start Playing! 🎲</button>
+                    <button type="button" class="secondary" id="back-btn" data-i18n="back">Back</button>
+                </form>
+            </div>
+            
+            <!-- Loading/Joining State -->
+            <div id="joining-state" class="joining-state hidden">
+                <div class="loading-animation">
+                    <div class="dice">🎲</div>
+                    <div class="dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <h2 data-i18n="findingRoom">Finding you a room...</h2>
+                <p data-i18n="findingRoomDesc">Looking for the best available room with other players</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../i18n.js"></script>
+    <script src="play-randoms.js"></script>
+</body>
+</html> 

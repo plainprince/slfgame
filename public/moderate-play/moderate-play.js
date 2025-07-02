@@ -359,32 +359,62 @@ socket.on('roundStarted', (data) => {
     // Reset loading state
     roundStopLoading = false;
     updateStopRoundButton();
+    
+    // For random rooms, the 3-second timeout is handled in the player iframe
+    if (data.isRandomRoom) {
+        console.log('Round started in random room - 3 second timeout will be enforced');
+    }
 });
 
 socket.on('handRaisedNotification', (data) => {
-    // In moderator playing mode, automatically approve any hand that is raised
-    // This implements the school-style rule where the first person to finish wins
-    socket.emit('approveHand', { gameId, approved: true });
-    
-    // Show notification
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        z-index: 9999;
-        font-weight: 500;
-    `;
-    notification.textContent = window.i18n.t('autoApproved', { playerName: data.playerName });
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 5000);
+    if (data.autoApproved) {
+        console.log(`Hand auto-approved in random room: ${data.playerName}`);
+        // The round will end automatically, no action needed from moderator
+        
+        // Show notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-weight: 500;
+        `;
+        notification.textContent = `✋ ${data.playerName} raised hand - round ending!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    } else {
+        // In moderator playing mode, automatically approve any hand that is raised
+        // This implements the school-style rule where the first person to finish wins
+        socket.emit('approveHand', { gameId, approved: true });
+        
+        // Show notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-weight: 500;
+        `;
+        notification.textContent = `✋ ${data.playerName} raised hand - auto-approved!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
 });
 
 socket.on('roundEnded', (data) => {
@@ -464,8 +494,248 @@ function updateStopRoundButton() {
     }
 }
 
+// Custom modal system
+function createModal(type, message, options = {}) {
+    return new Promise((resolve) => {
+        // Remove any existing modal
+        const existingModal = document.querySelector('.custom-modal-overlay');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-modal-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+        `;
+
+        // Create modal content
+        const modal = document.createElement('div');
+        modal.className = 'custom-modal';
+        modal.style.cssText = `
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        `;
+
+        // Icon based on type
+        const icons = {
+            alert: '⚠️',
+            confirm: '❓',
+            prompt: '✏️',
+            success: '✅',
+            error: '❌'
+        };
+
+        const icon = icons[type] || icons.alert;
+
+        let modalHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">${icon}</div>
+                <div style="font-size: 16px; color: #333; line-height: 1.4;">${message}</div>
+            </div>
+        `;
+
+        // Buttons
+        modalHTML += '<div style="display: flex; gap: 12px; justify-content: center;">';
+        
+        if (type === 'confirm') {
+            modalHTML += `
+                <button id="modal-cancel" class="modal-btn modal-cancel-btn" style="
+                    padding: 10px 20px;
+                    border: 2px solid #dc3545;
+                    background: white;
+                    color: #dc3545;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: all 0.2s;
+                ">
+                    Cancel
+                </button>
+                <button id="modal-ok" class="modal-btn modal-ok-btn" style="
+                    padding: 10px 20px;
+                    border: 2px solid #28a745;
+                    background: #28a745;
+                    color: white;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: all 0.2s;
+                ">
+                    OK
+                </button>
+            `;
+        } else {
+            modalHTML += `
+                <button id="modal-ok" class="modal-btn modal-ok-btn" style="
+                    padding: 10px 24px;
+                    border: 2px solid #007bff;
+                    background: #007bff;
+                    color: white;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: all 0.2s;
+                ">
+                    OK
+                </button>
+            `;
+        }
+
+        modalHTML += '</div>';
+        modal.innerHTML = modalHTML;
+        overlay.appendChild(modal);
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                from { transform: scale(0.8) translateY(-20px); opacity: 0; }
+                to { transform: scale(1) translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.body.appendChild(overlay);
+
+        // Event listeners
+        const handleClose = (result) => {
+            overlay.style.animation = 'fadeIn 0.2s ease-out reverse';
+            modal.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => {
+                overlay.remove();
+                style.remove();
+                resolve(result);
+            }, 200);
+        };
+
+        const okBtn = document.getElementById('modal-ok');
+        const cancelBtn = document.getElementById('modal-cancel');
+
+        if (okBtn) {
+            okBtn.addEventListener('click', () => {
+                handleClose(true);
+            });
+            
+            // Add hover effects for OK button
+            okBtn.addEventListener('mouseenter', () => {
+                if (okBtn.style.backgroundColor === '#28a745') {
+                    okBtn.style.backgroundColor = '#218838';
+                } else if (okBtn.style.backgroundColor === '#007bff') {
+                    okBtn.style.backgroundColor = '#0056b3';
+                }
+            });
+            okBtn.addEventListener('mouseleave', () => {
+                if (okBtn.style.border.includes('#28a745')) {
+                    okBtn.style.backgroundColor = '#28a745';
+                } else if (okBtn.style.border.includes('#007bff')) {
+                    okBtn.style.backgroundColor = '#007bff';
+                }
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                handleClose(false);
+            });
+            
+            // Add hover effects for Cancel button
+            cancelBtn.addEventListener('mouseenter', () => {
+                if (cancelBtn.style.border.includes('#dc3545')) {
+                    cancelBtn.style.backgroundColor = '#dc3545';
+                    cancelBtn.style.color = 'white';
+                }
+            });
+            cancelBtn.addEventListener('mouseleave', () => {
+                cancelBtn.style.backgroundColor = 'white';
+                if (cancelBtn.style.border.includes('#dc3545')) {
+                    cancelBtn.style.color = '#dc3545';
+                }
+            });
+        }
+
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                handleClose(type === 'confirm' ? false : true);
+            }
+        });
+
+        // Handle Enter and Escape keys
+        const handleKeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleClose(true);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                handleClose(type === 'confirm' ? false : true);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeydown);
+        
+        // Clean up event listener when modal closes
+        const originalResolve = resolve;
+        resolve = (result) => {
+            document.removeEventListener('keydown', handleKeydown);
+            originalResolve(result);
+        };
+    });
+}
+
+// Track feedback state for each answer
+const feedbackState = new Map(); // Map of answerKey -> { thumbsUp: boolean, thumbsDown: boolean }
+
+function getAnswerKey(answer, category, letter) {
+    return `${answer}_${category}_${letter}`;
+}
+
 // Feedback submission function
 async function submitFeedback(answer, category, letter, aiSaid, userSays) {
+    const answerKey = getAnswerKey(answer, category, letter);
+    const currentState = feedbackState.get(answerKey) || { thumbsUp: false, thumbsDown: false };
+    
+    // Check if this is a negative feedback submission or undo
+    if (!userSays) { // Thumbs down
+        if (currentState.thumbsDown) {
+            // Already submitted negative feedback, ask for confirmation to undo
+            const confirmed = await createModal('confirm', window.i18n.t('confirmUndoNegativeFeedback'));
+            if (!confirmed) {
+                return;
+            }
+        } else {
+            // First time submitting negative feedback, ask for confirmation
+            const confirmed = await createModal('confirm', window.i18n.t('confirmNegativeFeedback'));
+            if (!confirmed) {
+                return;
+            }
+        }
+    }
+    
     try {
         const response = await fetch('/api/feedback', {
             method: 'POST',
@@ -482,19 +752,18 @@ async function submitFeedback(answer, category, letter, aiSaid, userSays) {
         });
         
         if (response.ok) {
-            // Visual feedback - change button color temporarily
-            const buttons = document.querySelectorAll(`button[data-answer="${answer}"][data-category="${category}"]`);
-            buttons.forEach(btn => {
-                if ((userSays && btn.classList.contains('thumbs-up')) || 
-                    (!userSays && btn.classList.contains('thumbs-down'))) {
-                    btn.style.backgroundColor = '#28a745';
-                    btn.style.color = 'white';
-                    setTimeout(() => {
-                        btn.style.backgroundColor = '';
-                        btn.style.color = '';
-                    }, 2000);
-                }
-            });
+            // Update feedback state
+            if (userSays) {
+                currentState.thumbsUp = !currentState.thumbsUp;
+                currentState.thumbsDown = false;
+            } else {
+                currentState.thumbsDown = !currentState.thumbsDown;
+                currentState.thumbsUp = false;
+            }
+            feedbackState.set(answerKey, currentState);
+            
+            // Update button visual states
+            updateFeedbackButtonStates(answer, category, letter);
             
             console.log('Feedback submitted successfully');
         } else {
@@ -503,4 +772,37 @@ async function submitFeedback(answer, category, letter, aiSaid, userSays) {
     } catch (error) {
         console.error('Error submitting feedback:', error);
     }
+}
+
+function updateFeedbackButtonStates(answer, category, letter) {
+    const answerKey = getAnswerKey(answer, category, letter);
+    const state = feedbackState.get(answerKey) || { thumbsUp: false, thumbsDown: false };
+    
+    const buttons = document.querySelectorAll(`button[data-answer="${answer}"][data-category="${category}"][data-letter="${letter}"]`);
+    
+    buttons.forEach(btn => {
+        if (btn.classList.contains('thumbs-up')) {
+            if (state.thumbsUp) {
+                btn.style.backgroundColor = '#28a745';
+                btn.style.color = 'white';
+                btn.style.opacity = '1';
+            } else {
+                btn.style.backgroundColor = '';
+                btn.style.color = '';
+                btn.style.opacity = '1';
+            }
+        } else if (btn.classList.contains('thumbs-down')) {
+            if (state.thumbsDown) {
+                btn.style.backgroundColor = '#dc3545';
+                btn.style.color = 'white';
+                btn.style.opacity = '0.7';
+                btn.style.filter = 'grayscale(50%)';
+            } else {
+                btn.style.backgroundColor = '';
+                btn.style.color = '';
+                btn.style.opacity = '1';
+                btn.style.filter = '';
+            }
+        }
+    });
 } 

@@ -813,10 +813,29 @@ function createAnswersForm() {
         div.className = 'answer-group';
         div.innerHTML = `
             <label for="answer-${category}">${category}:</label>
-            <input type="text" id="answer-${category}" data-category="${category}" 
-                   placeholder="${window.i18n.t('enterWith')} ${category.toLowerCase()} ${window.i18n.t('startingWith')} ${currentLetter}">
+            <div class="answer-input-container">
+                <input type="text" id="answer-${category}" data-category="${category}" 
+                       placeholder="${window.i18n.t('enterWith')} ${category.toLowerCase()} ${window.i18n.t('startingWith')} ${currentLetter}">
+                <button type="button" class="clear-answer-btn" data-category="${category}" 
+                        title="${window.i18n.t('clearAnswerTooltip')}" aria-label="${window.i18n.t('clearAnswer')}">
+                    ✕
+                </button>
+            </div>
         `;
         form.appendChild(div);
+    });
+
+    // Add clear answer button functionality
+    const clearButtons = form.querySelectorAll('.clear-answer-btn');
+    clearButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const category = button.dataset.category;
+            const input = document.getElementById(`answer-${category}`);
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+        });
     });
 }
 
@@ -1032,6 +1051,12 @@ socket.on('roundStarted', (data) => {
     // Reset loading state
     roundStopLoading = false;
     updateStopRoundButton();
+    
+    // For random rooms, apply the 3-second timeout for hand raising
+    if (data.isRandomRoom) {
+        // This functionality would be handled in the player iframe, not here
+        console.log('Round started in random room - 3 second timeout will be enforced');
+    }
     
     // Start timer (no time limit)
     startTimer();
@@ -1279,25 +1304,30 @@ socket.on('handRaised', (data) => {
 });
 
 socket.on('handRaisedNotification', (data) => {
-    // Show notification that someone raised their hand
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #007bff;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        z-index: 9999;
-        font-weight: 500;
-    `;
-    notification.textContent = `✋ ${data.playerName} raised their hand!`;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 5000);
+    if (data.autoApproved) {
+        console.log(`Hand auto-approved in random room: ${data.playerName}`);
+        // The round will end automatically, no action needed from moderator
+    } else {
+        // Show notification that someone raised their hand
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-weight: 500;
+        `;
+        notification.textContent = `✋ ${data.playerName} raised their hand!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
 });
 
 socket.on('handProcessed', () => {
